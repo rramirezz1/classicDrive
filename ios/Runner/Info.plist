@@ -45,5 +45,21 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Esta aplicação precisa de acesso à localização para mostrar carros próximos.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Esta aplicação precisa de acesso à localização para mostrar carros próximos.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Esta aplicação precisa de acesso à câmara para tirar fotos do carro.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Esta aplicação precisa de acesso à galeria para selecionar fotos do carro.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>tel</string>
+		<string>mailto</string>
+		<string>sms</string>
+	</array>
 </dict>
+
 </plist>

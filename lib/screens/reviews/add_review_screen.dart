@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // <-- ADICIONA ESTA LINHA
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../models/booking_model.dart';
 import '../../models/vehicle_model.dart';
 import '../../models/review_model.dart';
 import '../../widgets/rating_widget.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddReviewScreen extends StatefulWidget {
   final String bookingId;
@@ -50,12 +50,13 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
           Provider.of<DatabaseService>(context, listen: false);
 
       // Buscar dados da reserva
-      final bookingsSnapshot = await FirebaseFirestore.instance
-          .collection('bookings')
-          .doc(widget.bookingId)
-          .get();
+      final bookingsSnapshot = await Supabase.instance.client
+          .from('bookings')
+          .select()
+          .eq('id', widget.bookingId)
+          .maybeSingle();
 
-      if (!bookingsSnapshot.exists) {
+      if (bookingsSnapshot == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Reserva não encontrada')),
@@ -65,18 +66,15 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
         return;
       }
 
-      final booking = BookingModel.fromMap(
-        bookingsSnapshot.data()!,
-        bookingsSnapshot.id,
-      );
+      final booking = BookingModel.fromMap(bookingsSnapshot);
 
       // Verificar se já existe avaliação
-      final existingReview = await FirebaseFirestore.instance
-          .collection('reviews')
-          .where('bookingId', isEqualTo: widget.bookingId)
-          .get();
+      final existingReview = await Supabase.instance.client
+          .from('reviews')
+          .select()
+          .eq('booking_id', widget.bookingId);
 
-      if (existingReview.docs.isNotEmpty) {
+      if (existingReview.isNotEmpty) {
         setState(() {
           _hasExistingReview = true;
           _isLoading = false;
@@ -131,7 +129,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
       final review = ReviewModel(
         bookingId: widget.bookingId,
         vehicleId: _booking!.vehicleId,
-        reviewerId: authService.currentUser!.uid,
+        reviewerId: authService.currentUser!.id,
         reviewerName: authService.userData?.name ?? 'Utilizador',
         rating: _rating,
         comment: _commentController.text.trim(),
@@ -139,9 +137,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
       );
 
       // Adicionar avaliação
-      await FirebaseFirestore.instance
-          .collection('reviews')
-          .add(review.toMap());
+      await Supabase.instance.client.from('reviews').insert(review.toMap());
 
       // Atualizar rating do veículo
       await _updateVehicleRating(_booking!.vehicleId);
@@ -174,29 +170,33 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
 
   Future<void> _updateVehicleRating(String vehicleId) async {
     try {
-      final reviews = await FirebaseFirestore.instance
-          .collection('reviews')
-          .where('vehicleId', isEqualTo: vehicleId)
-          .get();
+      final reviews = await Supabase.instance.client
+          .from('reviews')
+          .select('rating')
+          .eq('vehicle_id', vehicleId);
 
-      if (reviews.docs.isEmpty) return;
+      if (reviews.isEmpty) return;
 
       double totalRating = 0;
-      for (var doc in reviews.docs) {
-        totalRating += doc.data()['rating'];
+      for (var review in reviews) {
+        totalRating += review['rating'];
       }
 
-      final avgRating = totalRating / reviews.docs.length;
+      final avgRating = totalRating / reviews.length;
 
-      await FirebaseFirestore.instance
-          .collection('vehicles')
-          .doc(vehicleId)
-          .update({
-        'stats.rating': avgRating,
-        'stats.totalBookings': FieldValue.increment(1),
-      });
+      // Buscar o veículo atual para incrementar total_bookings
+      final vehicle = await Supabase.instance.client
+          .from('vehicles')
+          .select('total_bookings')
+          .eq('id', vehicleId)
+          .single();
+
+      await Supabase.instance.client.from('vehicles').update({
+        'rating': avgRating,
+        'total_bookings': (vehicle['total_bookings'] ?? 0) + 1,
+      }).eq('id', vehicleId);
     } catch (e) {
-      print('Erro ao atualizar rating: $e');
+      // Error logged silently
     }
   }
 

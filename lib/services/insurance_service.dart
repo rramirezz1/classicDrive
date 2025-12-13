@@ -1,18 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 import '../models/insurance_model.dart';
 import '../models/booking_model.dart';
 import '../models/vehicle_model.dart';
 
+/// Serviço de gestão de seguros.
 class InsuranceService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
+  final _uuid = const Uuid();
 
-  // Parceiros de seguro (simulado)
   static const List<InsurancePartner> partners = [
     InsurancePartner(
       id: 'liberty',
       name: 'Liberty Seguros',
       logo: 'assets/images/liberty_logo.png',
-      baseRate: 0.05, // 5% do valor do aluguer
+      baseRate: 0.05,
     ),
     InsurancePartner(
       id: 'allianz',
@@ -28,7 +30,7 @@ class InsuranceService {
     ),
   ];
 
-  // Calcular seguro para uma reserva
+  /// Calcula o seguro para uma reserva.
   Future<InsuranceQuote> calculateInsurance({
     required BookingModel booking,
     required VehicleModel vehicle,
@@ -36,19 +38,11 @@ class InsuranceService {
     String partnerId = 'liberty',
   }) async {
     try {
-      // Obter parceiro
       final partner = partners.firstWhere((p) => p.id == partnerId);
-
-      // Calcular número de dias
       final days = booking.endDate.difference(booking.startDate).inDays + 1;
-
-      // Valor base do veículo (estimado)
       final vehicleValue = _estimateVehicleValue(vehicle);
-
-      // Calcular prémio base
       double basePremium = booking.totalPrice * partner.baseRate;
 
-      // Ajustar por tipo de cobertura
       double coverageMultiplier = 1.0;
       switch (coverageType) {
         case 'basic':
@@ -64,10 +58,9 @@ class InsuranceService {
 
       final premium = basePremium * coverageMultiplier;
 
-      // Criar quote
       final quote = InsuranceQuote(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        bookingId: booking.bookingId!,
+        id: _uuid.v4(),
+        bookingId: booking.bookingId ?? '',
         vehicleId: vehicle.vehicleId!,
         partnerId: partnerId,
         partnerName: partner.name,
@@ -81,43 +74,74 @@ class InsuranceService {
         createdAt: DateTime.now(),
       );
 
-      // Salvar quote
-      await _firestore
-          .collection('insurance_quotes')
-          .doc(quote.id)
-          .set(quote.toMap());
+      if (booking.bookingId != null && booking.bookingId!.isNotEmpty) {
+        await _supabase.from('insurance_quotes').insert({
+          'id': quote.id,
+          'booking_id': quote.bookingId,
+          'vehicle_id': quote.vehicleId,
+          'partner_id': quote.partnerId,
+          'partner_name': quote.partnerName,
+          'coverage_type': quote.coverageType,
+          'coverage_details': quote.coverageDetails,
+          'vehicle_value': quote.vehicleValue,
+          'daily_rate': quote.dailyRate,
+          'total_premium': quote.totalPremium,
+          'deductible': quote.deductible,
+          'valid_until': quote.validUntil.toIso8601String(),
+          'created_at': quote.createdAt.toIso8601String(),
+        });
+      }
 
       return quote;
     } catch (e) {
-      print('Erro ao calcular seguro: $e');
       throw Exception('Falha ao calcular seguro');
     }
   }
 
-  // Ativar seguro
+  /// Ativa o seguro para uma reserva.
   Future<InsurancePolicy> activateInsurance({
     required InsuranceQuote quote,
     required String paymentMethod,
+    String? bookingId,
   }) async {
     try {
-      // Verificar se quote ainda é válida
       if (quote.validUntil.isBefore(DateTime.now())) {
         throw Exception('Cotação expirada');
       }
 
-      // Criar apólice
+      final effectiveBookingId = bookingId ?? quote.bookingId;
+
+      if (effectiveBookingId.isEmpty) {
+        throw Exception('ID da reserva inválido para ativar seguro');
+      }
+
+      await _supabase.from('insurance_quotes').upsert({
+        'id': quote.id,
+        'booking_id': effectiveBookingId,
+        'vehicle_id': quote.vehicleId,
+        'partner_id': quote.partnerId,
+        'partner_name': quote.partnerName,
+        'coverage_type': quote.coverageType,
+        'coverage_details': quote.coverageDetails,
+        'vehicle_value': quote.vehicleValue,
+        'daily_rate': quote.dailyRate,
+        'total_premium': quote.totalPremium,
+        'deductible': quote.deductible,
+        'valid_until': quote.validUntil.toIso8601String(),
+        'created_at': quote.createdAt.toIso8601String(),
+      });
+
       final policy = InsurancePolicy(
         policyNumber: _generatePolicyNumber(),
         quoteId: quote.id,
-        bookingId: quote.bookingId,
+        bookingId: effectiveBookingId,
         vehicleId: quote.vehicleId,
         partnerId: quote.partnerId,
         partnerName: quote.partnerName,
         coverageType: quote.coverageType,
         coverageDetails: quote.coverageDetails,
         startDate: DateTime.now(),
-        endDate: DateTime.now()
-            .add(const Duration(days: 30)), // Ajustar conforme reserva
+        endDate: DateTime.now().add(const Duration(days: 30)),
         premium: quote.totalPremium,
         deductible: quote.deductible,
         status: 'active',
@@ -126,30 +150,39 @@ class InsuranceService {
         createdAt: DateTime.now(),
       );
 
-      // Salvar apólice
-      await _firestore
-          .collection('insurance_policies')
-          .doc(policy.policyNumber)
-          .set(policy.toMap());
-
-      // Atualizar reserva
-      await _firestore.collection('bookings').doc(quote.bookingId).update({
-        'insurance': {
-          'hasInsurance': true,
-          'policyNumber': policy.policyNumber,
-          'provider': policy.partnerName,
-          'coverageType': policy.coverageType,
-        },
+      await _supabase.from('insurance_policies').insert({
+        'policy_number': policy.policyNumber,
+        'quote_id': policy.quoteId,
+        'booking_id': policy.bookingId,
+        'vehicle_id': policy.vehicleId,
+        'partner_id': policy.partnerId,
+        'partner_name': policy.partnerName,
+        'coverage_type': policy.coverageType,
+        'coverage_details': policy.coverageDetails,
+        'start_date': policy.startDate.toIso8601String(),
+        'end_date': policy.endDate.toIso8601String(),
+        'premium': policy.premium,
+        'deductible': policy.deductible,
+        'status': policy.status,
+        'payment_method': policy.paymentMethod,
+        'payment_status': policy.paymentStatus,
+        'created_at': policy.createdAt.toIso8601String(),
       });
+
+      await _supabase.from('bookings').update({
+        'has_insurance': true,
+        'insurance_policy_number': policy.policyNumber,
+        'insurance_provider': policy.partnerName,
+        'insurance_coverage_type': policy.coverageType,
+      }).eq('id', effectiveBookingId);
 
       return policy;
     } catch (e) {
-      print('Erro ao ativar seguro: $e');
       throw Exception('Falha ao ativar seguro');
     }
   }
 
-  // Submeter claim
+  /// Submete um sinistro.
   Future<InsuranceClaim> submitClaim({
     required String policyNumber,
     required String type,
@@ -158,24 +191,22 @@ class InsuranceService {
     Map<String, dynamic>? additionalInfo,
   }) async {
     try {
-      // Obter apólice
-      final policyDoc = await _firestore
-          .collection('insurance_policies')
-          .doc(policyNumber)
-          .get();
+      final policyData = await _supabase
+          .from('insurance_policies')
+          .select()
+          .eq('policy_number', policyNumber)
+          .maybeSingle();
 
-      if (!policyDoc.exists) {
+      if (policyData == null) {
         throw Exception('Apólice não encontrada');
       }
 
-      final policy = InsurancePolicy.fromMap(policyDoc.data()!);
+      final policy = InsurancePolicy.fromMap(policyData);
 
-      // Verificar se apólice está ativa
       if (policy.status != 'active') {
         throw Exception('Apólice não está ativa');
       }
 
-      // Criar claim
       final claim = InsuranceClaim(
         claimNumber: _generateClaimNumber(),
         policyNumber: policyNumber,
@@ -183,49 +214,56 @@ class InsuranceService {
         description: description,
         photos: photos,
         status: 'submitted',
-        estimatedAmount: 0, // Será calculado após análise
+        estimatedAmount: 0,
         approvedAmount: null,
         deductible: policy.deductible,
         submittedAt: DateTime.now(),
         additionalInfo: additionalInfo ?? {},
       );
 
-      // Salvar claim
-      await _firestore
-          .collection('insurance_claims')
-          .doc(claim.claimNumber)
-          .set(claim.toMap());
+      await _supabase.from('insurance_claims').insert({
+        'claim_number': claim.claimNumber,
+        'policy_number': claim.policyNumber,
+        'type': claim.type,
+        'description': claim.description,
+        'photos': claim.photos,
+        'status': claim.status,
+        'estimated_amount': claim.estimatedAmount,
+        'approved_amount': claim.approvedAmount,
+        'deductible': claim.deductible,
+        'submitted_at': claim.submittedAt.toIso8601String(),
+        'additional_info': claim.additionalInfo,
+      });
 
-      // Notificar parceiro
       await _notifyPartnerOfClaim(policy.partnerId, claim);
 
       return claim;
     } catch (e) {
-      print('Erro ao submeter claim: $e');
       throw Exception('Falha ao submeter claim');
     }
   }
 
-  // Obter apólices do utilizador
+  /// Obtém as apólices de um utilizador.
   Stream<List<InsurancePolicy>> getUserPolicies(String userId) {
-    return _firestore
-        .collection('bookings')
-        .where('renterId', isEqualTo: userId)
-        .where('insurance.hasInsurance', isEqualTo: true)
-        .snapshots()
-        .asyncMap((bookingSnapshot) async {
+    return _supabase
+        .from('bookings')
+        .stream(primaryKey: ['id']).asyncMap((bookings) async {
       List<InsurancePolicy> policies = [];
 
-      for (var bookingDoc in bookingSnapshot.docs) {
-        final insuranceData = bookingDoc.data()['insurance'];
-        if (insuranceData != null && insuranceData['policyNumber'] != null) {
-          final policyDoc = await _firestore
-              .collection('insurance_policies')
-              .doc(insuranceData['policyNumber'])
-              .get();
+      final userBookings = bookings.where((booking) =>
+          booking['renter_id'] == userId && booking['has_insurance'] == true);
 
-          if (policyDoc.exists) {
-            policies.add(InsurancePolicy.fromMap(policyDoc.data()!));
+      for (var booking in userBookings) {
+        final policyNumber = booking['insurance_policy_number'];
+        if (policyNumber != null) {
+          final policyData = await _supabase
+              .from('insurance_policies')
+              .select()
+              .eq('policy_number', policyNumber)
+              .maybeSingle();
+
+          if (policyData != null) {
+            policies.add(InsurancePolicy.fromMap(policyData));
           }
         }
       }
@@ -234,36 +272,41 @@ class InsuranceService {
     });
   }
 
-  // Obter claims do utilizador
+  /// Obtém os sinistros de um utilizador.
   Stream<List<InsuranceClaim>> getUserClaims(String userId) {
-    return _firestore
-        .collection('insurance_policies')
-        .where('userId', isEqualTo: userId)
-        .snapshots()
-        .asyncMap((policySnapshot) async {
+    return _supabase
+        .from('insurance_policies')
+        .stream(primaryKey: ['policy_number']).asyncMap((policies) async {
       List<InsuranceClaim> claims = [];
 
-      for (var policyDoc in policySnapshot.docs) {
-        final claimsSnapshot = await _firestore
-            .collection('insurance_claims')
-            .where('policyNumber', isEqualTo: policyDoc.id)
-            .get();
+      for (var policy in policies) {
+        final bookingId = policy['booking_id'];
 
-        claims.addAll(
-          claimsSnapshot.docs.map((doc) => InsuranceClaim.fromMap(doc.data())),
-        );
+        final booking = await _supabase
+            .from('bookings')
+            .select('renter_id')
+            .eq('id', bookingId)
+            .maybeSingle();
+
+        if (booking != null && booking['renter_id'] == userId) {
+          final claimsData = await _supabase
+              .from('insurance_claims')
+              .select()
+              .eq('policy_number', policy['policy_number']);
+
+          claims.addAll(
+            claimsData.map((data) => InsuranceClaim.fromMap(data)),
+          );
+        }
       }
 
       return claims;
     });
   }
 
-  // Métodos auxiliares
   double _estimateVehicleValue(VehicleModel vehicle) {
-    // Estimativa baseada no ano e categoria
     double baseValue = 20000;
 
-    // Ajustar por categoria
     switch (vehicle.category) {
       case 'classic':
         baseValue = 30000;
@@ -276,7 +319,6 @@ class InsuranceService {
         break;
     }
 
-    // Ajustar por idade (carros clássicos podem valorizar)
     final age = DateTime.now().year - vehicle.year;
     if (age > 30) {
       baseValue *= 1.5;
@@ -325,11 +367,11 @@ class InsuranceService {
   double _getDeductible(String coverageType, double vehicleValue) {
     switch (coverageType) {
       case 'basic':
-        return vehicleValue * 0.10; // 10% do valor
+        return vehicleValue * 0.10;
       case 'standard':
-        return vehicleValue * 0.05; // 5% do valor
+        return vehicleValue * 0.05;
       case 'premium':
-        return vehicleValue * 0.02; // 2% do valor
+        return vehicleValue * 0.02;
       default:
         return 0;
     }
@@ -347,18 +389,16 @@ class InsuranceService {
 
   Future<void> _notifyPartnerOfClaim(
       String partnerId, InsuranceClaim claim) async {
-    
-    await _firestore.collection('partner_notifications').add({
-      'partnerId': partnerId,
+    await _supabase.from('partner_notifications').insert({
+      'partner_id': partnerId,
       'type': 'new_claim',
-      'claimNumber': claim.claimNumber,
+      'claim_number': claim.claimNumber,
       'message': 'Novo sinistro submetido',
-      'createdAt': FieldValue.serverTimestamp(),
     });
   }
 }
 
-// Modelo de parceiro de seguro
+/// Modelo de parceiro de seguro.
 class InsurancePartner {
   final String id;
   final String name;

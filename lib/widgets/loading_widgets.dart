@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 class LoadingWidgets {
-  // Shimmer para card de veículo 
+  // Shimmer para card de veículo
   static Widget vehicleCardShimmer() {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -26,53 +26,61 @@ class LoadingWidgets {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Título e preço
+                  // Título e preço - ✅ CORRIGIDO: Usar Expanded
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        height: 18,
-                        width: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(4),
+                      Expanded(
+                        flex: 3,
+                        child: Container(
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
-                      Container(
-                        height: 18,
-                        width: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(4),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // Categoria e localização
+                  // Categoria e localização - ✅ CORRIGIDO: Usar Flexible
                   Row(
                     children: [
-                      Container(
-                        height: 14,
-                        width: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(4),
+                      Flexible(
+                        child: Container(
+                          height: 14,
+                          width: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
-                      Container(
-                        height: 14,
-                        width: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(4),
+                      Flexible(
+                        child: Container(
+                          height: 14,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // Avaliação
+                  // Avaliação - ✅ CORRIGIDO: Adicionar Flexible
                   Row(
                     children: [
                       ...List.generate(
@@ -89,12 +97,14 @@ class LoadingWidgets {
                                 ),
                               )),
                       const SizedBox(width: 8),
-                      Container(
-                        height: 12,
-                        width: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(4),
+                      Flexible(
+                        child: Container(
+                          height: 12,
+                          width: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
                     ],
@@ -143,47 +153,55 @@ class LoadingWidgets {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Título e preço
+                  // Título e preço - ✅ CORRIGIDO: Usar Expanded
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        height: 24,
-                        width: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(4),
+                      Expanded(
+                        flex: 3,
+                        child: Container(
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
-                      Container(
-                        height: 28,
-                        width: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(4),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Categoria e avaliação
+                  // Categoria e avaliação - ✅ CORRIGIDO: Usar Flexible
                   Row(
                     children: [
-                      Container(
-                        height: 32,
-                        width: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(20),
+                      Flexible(
+                        child: Container(
+                          height: 32,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
-                      Container(
-                        height: 20,
-                        width: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(4),
+                      Flexible(
+                        child: Container(
+                          height: 20,
+                          width: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
                     ],

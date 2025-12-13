@@ -1,5 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
+/// Modelo de reserva de veículo.
 class BookingModel {
   final String? bookingId;
   final String vehicleId;
@@ -31,40 +30,44 @@ class BookingModel {
     this.updatedAt,
   });
 
-  factory BookingModel.fromMap(Map<String, dynamic> map, String id) {
+  /// Cria um BookingModel a partir de um Map da base de dados.
+  factory BookingModel.fromMap(Map<String, dynamic> map) {
     return BookingModel(
-      bookingId: id,
-      vehicleId: map['vehicleId'] ?? '',
-      renterId: map['renterId'] ?? '',
-      ownerId: map['ownerId'] ?? '',
-      startDate: (map['startDate'] as Timestamp).toDate(),
-      endDate: (map['endDate'] as Timestamp).toDate(),
-      eventType: map['eventType'] ?? '',
-      totalPrice: (map['totalPrice'] ?? 0).toDouble(),
+      bookingId: map['id'],
+      vehicleId: map['vehicle_id'] ?? '',
+      renterId: map['renter_id'] ?? '',
+      ownerId: map['owner_id'] ?? '',
+      startDate: DateTime.parse(map['start_date']),
+      endDate: DateTime.parse(map['end_date']),
+      eventType: map['event_type'] ?? '',
+      totalPrice: (map['total_price'] ?? 0).toDouble(),
       status: map['status'] ?? 'pending',
       payment: PaymentInfo.fromMap(map['payment'] ?? {}),
-      specialRequests: map['specialRequests'],
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
-      updatedAt: map['updatedAt'] != null
-          ? (map['updatedAt'] as Timestamp).toDate()
+      specialRequests: map['special_requests'],
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : DateTime.now(),
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'])
           : null,
     );
   }
 
+  /// Converte o modelo para Map para guardar na base de dados.
   Map<String, dynamic> toMap() {
     return {
-      'vehicleId': vehicleId,
-      'renterId': renterId,
-      'ownerId': ownerId,
-      'startDate': Timestamp.fromDate(startDate),
-      'endDate': Timestamp.fromDate(endDate),
-      'eventType': eventType,
-      'totalPrice': totalPrice,
+      'vehicle_id': vehicleId,
+      'renter_id': renterId,
+      'owner_id': ownerId,
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate.toIso8601String(),
+      'event_type': eventType,
+      'total_price': totalPrice,
       'status': status,
       'payment': payment.toMap(),
-      'specialRequests': specialRequests,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+      'special_requests': specialRequests,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
     };
   }
 
@@ -78,6 +81,7 @@ class BookingModel {
   }
 }
 
+/// Informação de pagamento de uma reserva.
 class PaymentInfo {
   final String method;
   final String status;
@@ -93,7 +97,7 @@ class PaymentInfo {
     return PaymentInfo(
       method: map['method'] ?? 'card',
       status: map['status'] ?? 'pending',
-      transactionId: map['transactionId'],
+      transactionId: map['transaction_id'],
     );
   }
 
@@ -101,7 +105,7 @@ class PaymentInfo {
     return {
       'method': method,
       'status': status,
-      'transactionId': transactionId,
+      'transaction_id': transactionId,
     };
   }
 }

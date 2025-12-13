@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../../models/review_model.dart';
 import '../../models/vehicle_model.dart';
 import '../../widgets/rating_widget.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class VehicleReviewsScreen extends StatelessWidget {
   final String vehicleId;
@@ -23,7 +23,6 @@ class VehicleReviewsScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-
           // Resumo das avaliações
           Container(
             padding: const EdgeInsets.all(16),
@@ -35,14 +34,20 @@ class VehicleReviewsScreen extends StatelessWidget {
                 ),
               ),
             ),
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('reviews')
-                  .where('vehicleId', isEqualTo: vehicleId)
-                  .snapshots(),
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: Supabase.instance.client
+                  .from('reviews')
+                  .stream(primaryKey: ['id']).eq('vehicle_id', vehicleId),
               builder: (context, snapshot) {
-                final reviewCount = snapshot.data?.docs.length ?? 0;
-                final avgRating = reviewCount > 0 ? vehicle.stats.rating : 0.0;
+                final reviews = snapshot.data ?? [];
+                final reviewCount = reviews.length;
+                
+                double avgRating = 0.0;
+                if (reviewCount > 0) {
+                  final total = reviews.fold<double>(
+                      0, (sum, item) => sum + (item['rating'] as num).toDouble());
+                  avgRating = total / reviewCount;
+                }
 
                 return Column(
                   children: [
@@ -73,12 +78,12 @@ class VehicleReviewsScreen extends StatelessWidget {
 
           // Lista de avaliações
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('reviews')
-                  .where('vehicleId', isEqualTo: vehicleId)
-                  .orderBy('createdAt', descending: true)
-                  .snapshots(),
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: Supabase.instance.client
+                  .from('reviews')
+                  .stream(primaryKey: ['id'])
+                  .eq('vehicle_id', vehicleId)
+                  .order('created_at', ascending: false),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -90,7 +95,7 @@ class VehicleReviewsScreen extends StatelessWidget {
                   );
                 }
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -120,11 +125,8 @@ class VehicleReviewsScreen extends StatelessWidget {
                   );
                 }
 
-                final reviews = snapshot.data!.docs
-                    .map((doc) => ReviewModel.fromMap(
-                          doc.data() as Map<String, dynamic>,
-                          doc.id,
-                        ))
+                final reviews = snapshot.data!
+                    .map((data) => ReviewModel.fromMap(data))
                     .toList();
 
                 return ListView.separated(

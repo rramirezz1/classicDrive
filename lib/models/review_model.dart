@@ -1,5 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
+/// Modelo de avaliação de veículo.
 class ReviewModel {
   final String? reviewId;
   final String bookingId;
@@ -10,11 +9,10 @@ class ReviewModel {
   final String comment;
   final List<String> images;
   final DateTime createdAt;
-
-  final bool isVerifiedBooking; // Se a reserva foi verificada
-  final bool isVerifiedReviewer; // Se o reviewer tem KYC
-  final Map<String, double> detailedRatings; // Ratings detalhados
-  final String? ownerResponse; // Resposta do proprietário
+  final bool isVerifiedBooking;
+  final bool isVerifiedReviewer;
+  final Map<String, double> detailedRatings;
+  final String? ownerResponse;
   final DateTime? ownerResponseAt;
   final int helpfulVotes;
   final List<String> helpfulVoters;
@@ -40,67 +38,68 @@ class ReviewModel {
         detailedRatings = detailedRatings ?? {},
         helpfulVoters = helpfulVoters ?? [];
 
-  factory ReviewModel.fromMap(Map<String, dynamic> map, String id) {
+  /// Cria um ReviewModel a partir de um Map da base de dados.
+  factory ReviewModel.fromMap(Map<String, dynamic> map) {
     return ReviewModel(
-      reviewId: id,
-      bookingId: map['bookingId'] ?? '',
-      vehicleId: map['vehicleId'] ?? '',
-      reviewerId: map['reviewerId'] ?? '',
-      reviewerName: map['reviewerName'] ?? 'Utilizador',
+      reviewId: map['id'],
+      bookingId: map['booking_id'] ?? '',
+      vehicleId: map['vehicle_id'] ?? '',
+      reviewerId: map['reviewer_id'] ?? '',
+      reviewerName: map['reviewer_name'] ?? 'Utilizador',
       rating: (map['rating'] ?? 0).toDouble(),
       comment: map['comment'] ?? '',
       images: List<String>.from(map['images'] ?? []),
-      createdAt: map['createdAt'] != null
-          ? (map['createdAt'] as Timestamp).toDate()
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
           : DateTime.now(),
-      isVerifiedBooking: map['isVerifiedBooking'] ?? false,
-      isVerifiedReviewer: map['isVerifiedReviewer'] ?? false,
-      detailedRatings: map['detailedRatings'] != null
-          ? Map<String, double>.from(map['detailedRatings'])
+      isVerifiedBooking: map['is_verified_booking'] ?? false,
+      isVerifiedReviewer: map['is_verified_reviewer'] ?? false,
+      detailedRatings: map['detailed_ratings'] != null
+          ? Map<String, double>.from(map['detailed_ratings'])
           : {},
-      ownerResponse: map['ownerResponse'],
-      ownerResponseAt: map['ownerResponseAt'] != null
-          ? (map['ownerResponseAt'] as Timestamp).toDate()
+      ownerResponse: map['owner_response'],
+      ownerResponseAt: map['owner_response_at'] != null
+          ? DateTime.parse(map['owner_response_at'])
           : null,
-      helpfulVotes: map['helpfulVotes'] ?? 0,
-      helpfulVoters: List<String>.from(map['helpfulVoters'] ?? []),
+      helpfulVotes: map['helpful_votes'] ?? 0,
+      helpfulVoters: List<String>.from(map['helpful_voters'] ?? []),
     );
   }
 
+  /// Converte o modelo para Map para guardar na base de dados.
   Map<String, dynamic> toMap() {
     return {
-      'bookingId': bookingId,
-      'vehicleId': vehicleId,
-      'reviewerId': reviewerId,
-      'reviewerName': reviewerName,
+      'booking_id': bookingId,
+      'vehicle_id': vehicleId,
+      'reviewer_id': reviewerId,
+      'reviewer_name': reviewerName,
       'rating': rating,
       'comment': comment,
       'images': images,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'isVerifiedBooking': isVerifiedBooking,
-      'isVerifiedReviewer': isVerifiedReviewer,
-      'detailedRatings': detailedRatings,
-      'ownerResponse': ownerResponse,
-      'ownerResponseAt':
-          ownerResponseAt != null ? Timestamp.fromDate(ownerResponseAt!) : null,
-      'helpfulVotes': helpfulVotes,
-      'helpfulVoters': helpfulVoters,
+      'created_at': createdAt.toIso8601String(),
+      'is_verified_booking': isVerifiedBooking,
+      'is_verified_reviewer': isVerifiedReviewer,
+      'detailed_ratings': detailedRatings,
+      'owner_response': ownerResponse,
+      'owner_response_at': ownerResponseAt?.toIso8601String(),
+      'helpful_votes': helpfulVotes,
+      'helpful_voters': helpfulVoters,
     };
   }
 
-  // Ratings detalhados padrão
+  /// Obtém os ratings detalhados padrão.
   static Map<String, double> getDefaultDetailedRatings() {
     return {
-      'cleanliness': 0.0, // Limpeza
-      'communication': 0.0, // Comunicação
-      'checkIn': 0.0, // Check-in
-      'accuracy': 0.0, // Precisão do anúncio
-      'value': 0.0, // Custo-benefício
-      'condition': 0.0, // Estado do veículo
+      'cleanliness': 0.0,
+      'communication': 0.0,
+      'checkIn': 0.0,
+      'accuracy': 0.0,
+      'value': 0.0,
+      'condition': 0.0,
     };
   }
 
-  // Calcular rating geral a partir dos detalhados
+  /// Calcula o rating geral a partir dos ratings detalhados.
   static double calculateOverallRating(Map<String, double> detailedRatings) {
     if (detailedRatings.isEmpty) return 0.0;
 

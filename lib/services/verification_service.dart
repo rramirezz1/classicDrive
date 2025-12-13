@@ -1,12 +1,11 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// Serviço de verificação KYC.
 class VerificationService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Submeter documentos KYC
+  /// Submete documentos para verificação KYC.
   Future<void> submitKYCDocuments({
     required String userId,
     required File selfie,
@@ -16,117 +15,154 @@ class VerificationService {
     File? proofOfAddress,
   }) async {
     try {
-      print('Uploading KYC documents for user: $userId');
-
-      // Criar referências para cada documento
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final Map<String, String> uploadedUrls = {};
 
-      // Upload da selfie
       uploadedUrls['selfie'] = await _uploadFile(
         file: selfie,
-        path: 'kyc/$userId/selfie_$timestamp.jpg',
+        path: '$userId/selfie_$timestamp.jpg',
+        bucket: 'user-documents',
       );
 
-      // Upload do documento frente
       uploadedUrls['idFront'] = await _uploadFile(
         file: idFront,
-        path: 'kyc/$userId/id_front_$timestamp.jpg',
+        path: '$userId/id_front_$timestamp.jpg',
+        bucket: 'user-documents',
       );
 
-      // Upload do documento verso
       uploadedUrls['idBack'] = await _uploadFile(
         file: idBack,
-        path: 'kyc/$userId/id_back_$timestamp.jpg',
+        path: '$userId/id_back_$timestamp.jpg',
+        bucket: 'user-documents',
       );
 
-      // Upload da carta de condução
       uploadedUrls['drivingLicense'] = await _uploadFile(
         file: drivingLicense,
-        path: 'kyc/$userId/driving_license_$timestamp.jpg',
+        path: '$userId/driving_license_$timestamp.jpg',
+        bucket: 'user-documents',
       );
 
-      // Upload do comprovativo de morada (se houver)
       if (proofOfAddress != null) {
         uploadedUrls['proofOfAddress'] = await _uploadFile(
           file: proofOfAddress,
-          path: 'kyc/$userId/proof_address_$timestamp.jpg',
+          path: '$userId/proof_address_$timestamp.jpg',
+          bucket: 'user-documents',
         );
       }
 
-      // Criar registro de verificação no Firestore
-      await _firestore.collection('verifications').doc(userId).set({
-        'userId': userId,
+      await _supabase.from('verifications').upsert({
+        'user_id': userId,
         'documents': uploadedUrls,
         'status': 'pending',
-        'submittedAt': FieldValue.serverTimestamp(),
-        'reviewedAt': null,
-        'reviewedBy': null,
-        'rejectionReason': null,
+        'reviewed_at': null,
+        'reviewed_by': null,
+        'rejection_reason': null,
         'type': 'kyc',
       });
 
-      // Atualizar status do usuário
-      await _firestore.collection('users').doc(userId).update({
-        'kycStatus': 'pending',
-        'kycSubmittedAt': FieldValue.serverTimestamp(),
-      });
-
-      print('KYC documents submitted successfully');
+      await _supabase.from('users').update({
+        'kyc_status': 'pending',
+        'kyc_submitted_at': DateTime.now().toIso8601String(),
+      }).eq('id', userId);
     } catch (e) {
-      print('Erro ao submeter documentos KYC: $e');
       throw Exception('Falha ao submeter documentos: ${e.toString()}');
     }
   }
 
-  // Upload de arquivo individual
+  /// Faz upload de um ficheiro para o storage.
   Future<String> _uploadFile({
     required File file,
     required String path,
+    required String bucket,
   }) async {
     try {
-      print('Uploading file to: $path');
-
-      // Verificar se o arquivo existe
       if (!await file.exists()) {
         throw Exception('Arquivo não encontrado');
       }
 
-      // Criar referência
-      final ref = _storage.ref().child(path);
+      await _supabase.storage.from(bucket).upload(
+            path,
+            file,
+            fileOptions: const FileOptions(
+              contentType: 'image/jpeg',
+            ),
+          );
 
-      // Upload com metadata
-      final metadata = SettableMetadata(
-        contentType: 'image/jpeg',
-        customMetadata: {
-          'uploadedAt': DateTime.now().toIso8601String(),
-        },
-      );
+      final signedUrl = await _supabase.storage.from(bucket).createSignedUrl(
+            path,
+            60 * 60 * 24 * 365,
+          );
 
-      // Fazer upload
-      final uploadTask = ref.putFile(file, metadata);
-
-      // Aguardar conclusão
-      final snapshot = await uploadTask;
-
-      // Obter URL de download
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      print('File uploaded successfully: $downloadUrl');
-      return downloadUrl;
+      return signedUrl;
     } catch (e) {
-      print('Erro ao fazer upload do arquivo: $e');
       throw Exception('Falha no upload do arquivo: ${e.toString()}');
     }
   }
 
-  // Obter status de verificação
+  /// Obtém o estado de verificação de um utilizador.
   Future<VerificationStatus> getVerificationStatus(String userId) async {
     try {
-      final doc =
-          await _firestore.collection('verifications').doc(userId).get();
+      final userData = await _supabase
+          .from('users')
+          .select(
+              'kyc_status, kyc_submitted_at, kyc_approved_at, kyc_rejected_at')
+          .eq('id', userId)
+          .maybeSingle();
 
-      if (!doc.exists) {
+      if (userData != null && userData['kyc_status'] != null) {
+        final kycStatus = userData['kyc_status'] as String;
+
+        if (kycStatus == 'approved' || kycStatus == 'rejected') {
+          return VerificationStatus(
+            status: kycStatus,
+            isPending: false,
+            isApproved: kycStatus == 'approved',
+            isRejected: kycStatus == 'rejected',
+            submittedAt: userData['kyc_submitted_at'] != null
+                ? DateTime.parse(userData['kyc_submitted_at'])
+                : null,
+            reviewedAt:
+                kycStatus == 'approved' && userData['kyc_approved_at'] != null
+                    ? DateTime.parse(userData['kyc_approved_at'])
+                    : (kycStatus == 'rejected' &&
+                            userData['kyc_rejected_at'] != null
+                        ? DateTime.parse(userData['kyc_rejected_at'])
+                        : null),
+          );
+        }
+
+        if (kycStatus == 'pending') {
+          final verificationData = await _supabase
+              .from('verifications')
+              .select()
+              .eq('user_id', userId)
+              .maybeSingle();
+
+          if (verificationData != null) {
+            return VerificationStatus(
+              status: 'pending',
+              isPending: true,
+              isApproved: false,
+              isRejected: false,
+              rejectionReason: verificationData['rejection_reason'],
+              submittedAt: verificationData['submitted_at'] != null
+                  ? DateTime.parse(verificationData['submitted_at'])
+                  : null,
+              reviewedAt: verificationData['reviewed_at'] != null
+                  ? DateTime.parse(verificationData['reviewed_at'])
+                  : null,
+            );
+          }
+        }
+      }
+
+      final verificationData = await _supabase
+          .from('verifications')
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (verificationData == null) {
         return VerificationStatus(
           status: 'not_submitted',
           isPending: false,
@@ -135,20 +171,22 @@ class VerificationService {
         );
       }
 
-      final data = doc.data()!;
-      final status = data['status'] as String;
+      final status = verificationData['status'] as String;
 
       return VerificationStatus(
         status: status,
         isPending: status == 'pending',
         isApproved: status == 'approved',
         isRejected: status == 'rejected',
-        rejectionReason: data['rejectionReason'],
-        submittedAt: (data['submittedAt'] as Timestamp?)?.toDate(),
-        reviewedAt: (data['reviewedAt'] as Timestamp?)?.toDate(),
+        rejectionReason: verificationData['rejection_reason'],
+        submittedAt: verificationData['submitted_at'] != null
+            ? DateTime.parse(verificationData['submitted_at'])
+            : null,
+        reviewedAt: verificationData['reviewed_at'] != null
+            ? DateTime.parse(verificationData['reviewed_at'])
+            : null,
       );
     } catch (e) {
-      print('Erro ao obter status de verificação: $e');
       return VerificationStatus(
         status: 'error',
         isPending: false,
@@ -158,55 +196,50 @@ class VerificationService {
     }
   }
 
-  // Aprovar verificação (admin)
+  /// Aprova a verificação de um utilizador (admin).
   Future<void> approveVerification(String userId, String adminId) async {
     try {
-      // Atualizar verificação
-      await _firestore.collection('verifications').doc(userId).update({
+      await _supabase.from('verifications').update({
         'status': 'approved',
-        'reviewedAt': FieldValue.serverTimestamp(),
-        'reviewedBy': adminId,
-      });
+        'reviewed_at': DateTime.now().toIso8601String(),
+        'reviewed_by': adminId,
+      }).eq('user_id', userId);
 
-      // Atualizar usuário
-      await _firestore.collection('users').doc(userId).update({
-        'hasKYC': true,
-        'kycStatus': 'approved',
-        'kycApprovedAt': FieldValue.serverTimestamp(),
-      });
+      await _supabase.from('users').update({
+        'is_verified': true,
+        'kyc_status': 'approved',
+        'kyc_approved_at': DateTime.now().toIso8601String(),
+      }).eq('id', userId);
     } catch (e) {
-      print('Erro ao aprovar verificação: $e');
       throw e;
     }
   }
 
-  // Rejeitar verificação (admin)
+  /// Rejeita a verificação de um utilizador (admin).
   Future<void> rejectVerification(
     String userId,
     String adminId,
     String reason,
   ) async {
     try {
-      // Atualizar verificação
-      await _firestore.collection('verifications').doc(userId).update({
+      await _supabase.from('verifications').update({
         'status': 'rejected',
-        'reviewedAt': FieldValue.serverTimestamp(),
-        'reviewedBy': adminId,
-        'rejectionReason': reason,
-      });
+        'reviewed_at': DateTime.now().toIso8601String(),
+        'reviewed_by': adminId,
+        'rejection_reason': reason,
+      }).eq('user_id', userId);
 
-      // Atualizar usuário
-      await _firestore.collection('users').doc(userId).update({
-        'kycStatus': 'rejected',
-        'kycRejectedAt': FieldValue.serverTimestamp(),
-      });
+      await _supabase.from('users').update({
+        'kyc_status': 'rejected',
+        'kyc_rejected_at': DateTime.now().toIso8601String(),
+      }).eq('id', userId);
     } catch (e) {
-      print('Erro ao rejeitar verificação: $e');
       throw e;
     }
   }
 }
 
+/// Estado de verificação KYC.
 class VerificationStatus {
   final String status;
   final bool isPending;

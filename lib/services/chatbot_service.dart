@@ -1,169 +1,82 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'ai_service.dart';
 
+/// Serviço de chatbot para suporte ao utilizador.
 class ChatbotService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Base de conhecimento do chatbot
-  static const Map<String, ChatbotResponse> knowledgeBase = {
-    'reserva': ChatbotResponse(
-      patterns: ['reserva', 'reservar', 'alugar', 'booking'],
-      responses: [
-        'Para fazer uma reserva, siga estes passos:\n'
-            '1. Procure o veículo desejado\n'
-            '2. Verifique a disponibilidade\n'
-            '3. Selecione as datas\n'
-            '4. Complete o pagamento',
-      ],
-      suggestedActions: [
-        'Ver veículos disponíveis',
-        'Política de cancelamento',
-        'Métodos de pagamento',
-      ],
-    ),
-    'pagamento': ChatbotResponse(
-      patterns: ['pagamento', 'pagar', 'cartão', 'mbway'],
-      responses: [
-        'Aceitamos vários métodos de pagamento:\n'
-            '💳 Cartão de crédito/débito\n'
-            '📱 MB Way\n'
-            '🏦 Transferência bancária\n'
-            '💰 PayPal',
-      ],
-      suggestedActions: [
-        'Problemas com pagamento',
-        'Segurança dos pagamentos',
-        'Solicitar fatura',
-      ],
-    ),
-    'verificacao': ChatbotResponse(
-      patterns: ['verificar', 'verificação', 'kyc', 'identidade'],
-      responses: [
-        'A verificação de conta é importante para:\n'
-            '✅ Aumentar a confiança\n'
-            '✅ Desbloquear todos os recursos\n'
-            '✅ Obter o badge de verificado\n\n'
-            'O processo é rápido e seguro!',
-      ],
-      suggestedActions: [
-        'Iniciar verificação',
-        'Documentos necessários',
-        'Tempo de aprovação',
-      ],
-    ),
-    'seguro': ChatbotResponse(
-      patterns: ['seguro', 'cobertura', 'sinistro', 'acidente'],
-      responses: [
-        'Oferecemos seguro completo:\n'
-            '🛡️ Básico: Responsabilidade civil\n'
-            '🛡️ Standard: + Colisão e assistência\n'
-            '🛡️ Premium: Cobertura total sem franquia',
-      ],
-      suggestedActions: [
-        'Comparar coberturas',
-        'Como acionar o seguro',
-        'Fazer um claim',
-      ],
-    ),
-    'cancelamento': ChatbotResponse(
-      patterns: ['cancelar', 'cancelamento', 'desistir'],
-      responses: [
-        'Política de cancelamento:\n'
-            '• Até 48h antes: Reembolso total\n'
-            '• 24-48h antes: Reembolso de 50%\n'
-            '• Menos de 24h: Sem reembolso\n\n'
-            'Exceções aplicam-se em casos especiais.',
-      ],
-      suggestedActions: [
-        'Cancelar reserva',
-        'Alterar datas',
-        'Contactar proprietário',
-      ],
-    ),
-  };
-
-  // Processar mensagem do utilizador
+  /// Processa uma mensagem do utilizador e retorna uma resposta.
   Future<ChatbotReply> processMessage(String message, String userId) async {
-    // Registar mensagem
     await _logMessage(userId, message, true);
 
-    // Analisar intenção
-    final intent = _analyzeIntent(message.toLowerCase());
+    String responseText;
+    List<String> actions = [];
+    bool needsHuman = false;
 
-    // Gerar resposta
-    ChatbotReply reply;
-    if (intent != null) {
-      final response = knowledgeBase[intent]!;
-      reply = ChatbotReply(
-        text: response.responses.first,
-        suggestedActions: response.suggestedActions,
-        requiresHuman: false,
-      );
-    } else {
-      // Não entendeu - verificar se precisa de humano
-      final needsHuman = _checkIfNeedsHuman(message);
-      reply = ChatbotReply(
-        text: needsHuman
-            ? 'Vou transferir você para um atendente humano.'
-            : 'Desculpe, não entendi. Posso ajudar com reservas, pagamentos, verificação ou seguro.',
-        suggestedActions: needsHuman
-            ? ['Deixar mensagem', 'Ver FAQ']
-            : ['Fazer reserva', 'Verificação', 'Suporte', 'FAQ'],
-        requiresHuman: needsHuman,
-      );
-    }
+    try {
+      final context = '''
+      És o assistente virtual da ClassicDrive, uma app de aluguer de carros clássicos.
+      
+      Regras:
+      1. Sê educado e profissional.
+      2. O teu objetivo é ajudar os utilizadores a alugar carros ou tirar dúvidas.
+      3. Se o utilizador quiser falar com um humano, diz que vais encaminhar.
+      4. Responde em Português de Portugal.
+      
+      Informação útil:
+      - Aceitamos pagamentos por Cartão e MB Way.
+      - O cancelamento é gratuito até 48h antes.
+      - É necessário verificar a conta (KYC) para alugar.
+      ''';
 
-    // Registar resposta
-    await _logMessage(userId, reply.text, false);
+      final aiResponse = await AIService().generateResponse(message, context: context);
 
-    return reply;
-  }
-
-  // Analisar intenção da mensagem
-  String? _analyzeIntent(String message) {
-    for (var entry in knowledgeBase.entries) {
-      for (var pattern in entry.value.patterns) {
-        if (message.contains(pattern)) {
-          return entry.key;
+      if (aiResponse != null) {
+        responseText = aiResponse;
+        if (responseText.toLowerCase().contains('reserva')) {
+          actions = ['Ver veículos', 'Fazer reserva'];
+        } else if (responseText.toLowerCase().contains('verifi')) {
+          actions = ['Verificar conta'];
         }
+      } else {
+        responseText = 'Desculpe, estou com dificuldades de conexão. Mas posso ajudar com reservas e informações.';
+        actions = ['Ver veículos', 'Suporte'];
       }
+    } catch (e) {
+      responseText = 'Ocorreu um erro. Por favor tente mais tarde.';
+      needsHuman = true;
     }
-    return null;
+
+    if (message.toLowerCase().contains('humano') || message.toLowerCase().contains('suporte')) {
+      needsHuman = true;
+      actions.add('Contactar Suporte');
+    }
+
+    await _logMessage(userId, responseText, false);
+
+    return ChatbotReply(
+      text: responseText,
+      suggestedActions: actions,
+      requiresHuman: needsHuman,
+    );
   }
 
-  // Verificar se precisa de atendimento humano
-  bool _checkIfNeedsHuman(String message) {
-    final humanKeywords = [
-      'humano',
-      'atendente',
-      'pessoa',
-      'falar com alguém',
-      'urgente',
-      'problema grave',
-      'não funciona',
-      'bug'
-    ];
-
-    return humanKeywords
-        .any((keyword) => message.toLowerCase().contains(keyword));
-  }
-
-  // Registar conversa
+  /// Regista uma mensagem na base de dados.
   Future<void> _logMessage(String userId, String message, bool isUser) async {
     try {
-      await _firestore.collection('chatbot_logs').add({
-        'userId': userId,
+      await _supabase.from('chatbot_logs').insert({
+        'user_id': userId,
         'message': message,
-        'isUser': isUser,
-        'timestamp': FieldValue.serverTimestamp(),
+        'is_user': isUser,
+        'timestamp': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      print('Erro ao registar mensagem do chatbot: $e');
+      // Erro silencioso
     }
   }
 
-  // Obter FAQs mais comuns
+  /// Obtém as perguntas frequentes mais comuns.
   Future<List<FAQ>> getTopFAQs() async {
-    // Por agora, retornar FAQs estáticas
     return [
       FAQ(
         question: 'Como faço para reservar um veículo?',
@@ -198,7 +111,7 @@ class ChatbotService {
     ];
   }
 
-  // Criar ticket de suporte quando necessário
+  /// Cria um ticket de suporte.
   Future<String> createSupportTicket({
     required String userId,
     required String subject,
@@ -206,26 +119,29 @@ class ChatbotService {
     required String priority,
   }) async {
     try {
-      final docRef = await _firestore.collection('support_tickets').add({
-        'userId': userId,
-        'subject': subject,
-        'message': message,
-        'priority': priority,
-        'status': 'open',
-        'createdAt': FieldValue.serverTimestamp(),
-        'assignedTo': null,
-        'chatHistory': [],
-      });
+      final response = await _supabase
+          .from('support_tickets')
+          .insert({
+            'user_id': userId,
+            'subject': subject,
+            'message': message,
+            'priority': priority,
+            'status': 'open',
+            'created_at': DateTime.now().toIso8601String(),
+            'assigned_to': null,
+            'chat_history': [],
+          })
+          .select()
+          .single();
 
-      return docRef.id;
+      return response['id'] as String;
     } catch (e) {
-      print('Erro ao criar ticket de suporte: $e');
       throw Exception('Falha ao criar ticket de suporte');
     }
   }
 }
 
-// Modelos
+/// Modelo de resposta do chatbot.
 class ChatbotResponse {
   final List<String> patterns;
   final List<String> responses;
@@ -238,6 +154,7 @@ class ChatbotResponse {
   });
 }
 
+/// Modelo de resposta do chatbot para o utilizador.
 class ChatbotReply {
   final String text;
   final List<String> suggestedActions;
@@ -250,6 +167,7 @@ class ChatbotReply {
   });
 }
 
+/// Modelo de pergunta frequente.
 class FAQ {
   final String question;
   final String answer;

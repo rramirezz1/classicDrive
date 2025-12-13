@@ -1,38 +1,34 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/vehicle_model.dart';
 import '../models/booking_model.dart';
 
+/// Serviço de recomendações personalizadas.
 class RecommendationService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Fatores de peso para o algoritmo
   static const double WEIGHT_CATEGORY = 0.3;
   static const double WEIGHT_PRICE = 0.25;
   static const double WEIGHT_LOCATION = 0.2;
   static const double WEIGHT_RATING = 0.15;
   static const double WEIGHT_FEATURES = 0.1;
 
-  // Obter recomendações personalizadas
+  /// Obtém recomendações personalizadas para um utilizador.
   Future<List<VehicleRecommendation>> getPersonalizedRecommendations(
     String userId, {
     int limit = 10,
   }) async {
     try {
-      // 1. Analisar histórico do utilizador
       final userProfile = await _analyzeUserProfile(userId);
 
-      // 2. Obter veículos disponíveis
-      final vehiclesSnapshot = await _firestore
-          .collection('vehicles')
-          .where('validation.status', isEqualTo: 'approved')
-          .where('availability.isAvailable', isEqualTo: true)
-          .get();
+      final vehiclesData = await _supabase
+          .from('vehicles')
+          .select()
+          .eq('validation_status', 'approved')
+          .eq('is_available', true);
 
-      final vehicles = vehiclesSnapshot.docs
-          .map((doc) => VehicleModel.fromMap(doc.data(), doc.id))
-          .toList();
+      final vehicles =
+          vehiclesData.map((data) => VehicleModel.fromMap(data)).toList();
 
-      // 3. Calcular pontuação para cada veículo
       List<VehicleRecommendation> recommendations = [];
 
       for (var vehicle in vehicles) {
@@ -44,64 +40,54 @@ class RecommendationService {
         ));
       }
 
-      // 4. Ordenar por pontuação
       recommendations.sort((a, b) => b.score.compareTo(a.score));
 
-      // 5. Registar impressões para aprendizagem
       await _logRecommendations(userId, recommendations.take(limit).toList());
 
       return recommendations.take(limit).toList();
     } catch (e) {
-      print('Erro ao gerar recomendações: $e');
       return [];
     }
   }
 
-  // Analisar perfil do utilizador
+  /// Analisa o perfil do utilizador com base no histórico.
   Future<UserProfile> _analyzeUserProfile(String userId) async {
-    // Obter histórico de visualizações
-    final viewsSnapshot = await _firestore
-        .collection('analytics')
-        .where('userId', isEqualTo: userId)
-        .where('action', isEqualTo: 'view')
-        .orderBy('timestamp', descending: true)
-        .limit(50)
-        .get();
+    final viewsData = await _supabase
+        .from('analytics')
+        .select()
+        .eq('user_id', userId)
+        .eq('action', 'view')
+        .order('timestamp', ascending: false)
+        .limit(50);
 
-    // Obter histórico de reservas
-    final bookingsSnapshot = await _firestore
-        .collection('bookings')
-        .where('renterId', isEqualTo: userId)
-        .get();
+    final bookingsData =
+        await _supabase.from('bookings').select().eq('renter_id', userId);
 
-    // Analisar preferências
     Map<String, int> categoryPreferences = {};
     Map<String, int> eventTypePreferences = {};
     List<double> priceHistory = [];
     Map<String, int> featurePreferences = {};
 
-    // Processar visualizações
-    for (var doc in viewsSnapshot.docs) {
-      final vehicleId = doc.data()['vehicleId'];
+    for (var view in viewsData) {
+      final vehicleId = view['vehicle_id'];
       if (vehicleId != null) {
-        final vehicleDoc =
-            await _firestore.collection('vehicles').doc(vehicleId).get();
+        final vehicleData = await _supabase
+            .from('vehicles')
+            .select()
+            .eq('id', vehicleId)
+            .maybeSingle();
 
-        if (vehicleDoc.exists) {
-          final vehicle =
-              VehicleModel.fromMap(vehicleDoc.data()!, vehicleDoc.id);
+        if (vehicleData != null) {
+          final vehicle = VehicleModel.fromMap(vehicleData);
 
-          // Categorias
           categoryPreferences[vehicle.category] =
               (categoryPreferences[vehicle.category] ?? 0) + 1;
 
-          // Tipos de evento
           for (var eventType in vehicle.eventTypes) {
             eventTypePreferences[eventType] =
                 (eventTypePreferences[eventType] ?? 0) + 1;
           }
 
-          // Features
           for (var feature in vehicle.features) {
             featurePreferences[feature] =
                 (featurePreferences[feature] ?? 0) + 1;
@@ -110,13 +96,11 @@ class RecommendationService {
       }
     }
 
-    // Processar reservas
-    for (var doc in bookingsSnapshot.docs) {
-      final booking = BookingModel.fromMap(doc.data(), doc.id);
+    for (var bookingData in bookingsData) {
+      final booking = BookingModel.fromMap(bookingData);
       priceHistory.add(booking.totalPrice / booking.numberOfDays);
     }
 
-    // Calcular médias e preferências
     double avgPrice = priceHistory.isNotEmpty
         ? priceHistory.reduce((a, b) => a + b) / priceHistory.length
         : 150.0;
@@ -136,31 +120,26 @@ class RecommendationService {
     );
   }
 
-  // Calcular pontuação de recomendação
+  /// Calcula a pontuação de recomendação para um veículo.
   double _calculateRecommendationScore(
     VehicleModel vehicle,
     UserProfile profile,
   ) {
     double score = 0;
 
-    // 1. Pontuação por categoria
     if (profile.preferredCategories.contains(vehicle.category)) {
       final index = profile.preferredCategories.indexOf(vehicle.category);
       score += WEIGHT_CATEGORY * (1 - index * 0.1);
     }
 
-    // 2. Pontuação por preço
     final priceDiff = (vehicle.pricePerDay - profile.averagePrice).abs();
     final priceScore = 1 - (priceDiff / profile.averagePrice).clamp(0, 1);
     score += WEIGHT_PRICE * priceScore;
 
-    // 3. Pontuação por localização (simplificado)
-    score += WEIGHT_LOCATION * 0.8; // Por agora, assumir proximidade
+    score += WEIGHT_LOCATION * 0.8;
 
-    // 4. Pontuação por avaliação
     score += WEIGHT_RATING * (vehicle.stats.rating / 5);
 
-    // 5. Pontuação por features
     int matchingFeatures = 0;
     for (var feature in vehicle.features) {
       if (profile.preferredFeatures.contains(feature)) {
@@ -171,7 +150,6 @@ class RecommendationService {
       score += WEIGHT_FEATURES * (matchingFeatures / vehicle.features.length);
     }
 
-    // Bonus por popularidade
     if (vehicle.stats.totalBookings > 10) {
       score *= 1.1;
     }
@@ -179,7 +157,7 @@ class RecommendationService {
     return score.clamp(0, 1);
   }
 
-  // Gerar razões para recomendação
+  /// Gera razões para uma recomendação.
   List<String> _generateReasons(
     VehicleModel vehicle,
     UserProfile profile,
@@ -204,7 +182,6 @@ class RecommendationService {
       reasons.add('Popular entre outros utilizadores');
     }
 
-    // Features em comum
     final commonFeatures = vehicle.features
         .where((f) => profile.preferredFeatures.contains(f))
         .toList();
@@ -215,72 +192,76 @@ class RecommendationService {
     return reasons;
   }
 
-  // Registar recomendações para aprendizagem
+  /// Regista as recomendações para aprendizagem.
   Future<void> _logRecommendations(
     String userId,
     List<VehicleRecommendation> recommendations,
   ) async {
     try {
-      final batch = _firestore.batch();
+      List<Map<String, dynamic>> logs = [];
 
       for (int i = 0; i < recommendations.length; i++) {
-        final docRef = _firestore.collection('recommendation_logs').doc();
-        batch.set(docRef, {
-          'userId': userId,
-          'vehicleId': recommendations[i].vehicle.vehicleId,
+        logs.add({
+          'user_id': userId,
+          'vehicle_id': recommendations[i].vehicle.vehicleId,
           'score': recommendations[i].score,
           'position': i + 1,
-          'timestamp': FieldValue.serverTimestamp(),
           'clicked': false,
           'booked': false,
         });
       }
 
-      await batch.commit();
+      await _supabase.from('recommendation_logs').insert(logs);
     } catch (e) {
-      print('Erro ao registar recomendações: $e');
+      // Erro silencioso
     }
   }
 
-  // Registar clique em recomendação
+  /// Regista um clique numa recomendação.
   Future<void> logRecommendationClick(String userId, String vehicleId) async {
     try {
-      final logs = await _firestore
-          .collection('recommendation_logs')
-          .where('userId', isEqualTo: userId)
-          .where('vehicleId', isEqualTo: vehicleId)
-          .orderBy('timestamp', descending: true)
-          .limit(1)
-          .get();
+      final logs = await _supabase
+          .from('recommendation_logs')
+          .select()
+          .eq('user_id', userId)
+          .eq('vehicle_id', vehicleId)
+          .order('timestamp', ascending: false)
+          .limit(1);
 
-      if (logs.docs.isNotEmpty) {
-        await logs.docs.first.reference.update({'clicked': true});
+      if (logs.isNotEmpty) {
+        final logId = logs.first['id'];
+        await _supabase
+            .from('recommendation_logs')
+            .update({'clicked': true}).eq('id', logId);
       }
     } catch (e) {
-      print('Erro ao registar clique: $e');
+      // Erro silencioso
     }
   }
 
-  // Registar reserva de recomendação
+  /// Regista uma reserva de uma recomendação.
   Future<void> logRecommendationBooking(String userId, String vehicleId) async {
     try {
-      final logs = await _firestore
-          .collection('recommendation_logs')
-          .where('userId', isEqualTo: userId)
-          .where('vehicleId', isEqualTo: vehicleId)
-          .orderBy('timestamp', descending: true)
-          .limit(1)
-          .get();
+      final logs = await _supabase
+          .from('recommendation_logs')
+          .select()
+          .eq('user_id', userId)
+          .eq('vehicle_id', vehicleId)
+          .order('timestamp', ascending: false)
+          .limit(1);
 
-      if (logs.docs.isNotEmpty) {
-        await logs.docs.first.reference.update({'booked': true});
+      if (logs.isNotEmpty) {
+        final logId = logs.first['id'];
+        await _supabase
+            .from('recommendation_logs')
+            .update({'booked': true}).eq('id', logId);
       }
     } catch (e) {
-      print('Erro ao registar reserva: $e');
+      // Erro silencioso
     }
   }
 
-  // Preços dinâmicos
+  /// Calcula o preço dinâmico baseado em procura e sazonalidade.
   Future<double> calculateDynamicPrice({
     required VehicleModel vehicle,
     required DateTime startDate,
@@ -289,7 +270,6 @@ class RecommendationService {
     final basePrice = vehicle.pricePerDay;
     double multiplier = 1.0;
 
-    // 1. Fator de demanda
     final demandMultiplier = await _calculateDemandMultiplier(
       vehicle.vehicleId!,
       startDate,
@@ -297,44 +277,39 @@ class RecommendationService {
     );
     multiplier *= demandMultiplier;
 
-    // 2. Fator de sazonalidade
     final seasonMultiplier = _calculateSeasonMultiplier(startDate);
     multiplier *= seasonMultiplier;
 
-    // 3. Fator de antecedência
     final advanceMultiplier = _calculateAdvanceMultiplier(startDate);
     multiplier *= advanceMultiplier;
 
-    // 4. Fator de duração
     final days = endDate.difference(startDate).inDays + 1;
     if (days >= 7) {
-      multiplier *= 0.9; // 10% desconto para alugueres longos
+      multiplier *= 0.9;
     } else if (days >= 3) {
-      multiplier *= 0.95; // 5% desconto
+      multiplier *= 0.95;
     }
 
     return basePrice * multiplier;
   }
 
-  // Calcular multiplicador de demanda
   Future<double> _calculateDemandMultiplier(
     String vehicleId,
     DateTime startDate,
     DateTime endDate,
   ) async {
-    // Verificar reservas existentes no período
-    final bookings = await _firestore
-        .collection('bookings')
-        .where('vehicleId', isEqualTo: vehicleId)
-        .where('status', whereIn: ['confirmed', 'pending']).get();
+    final bookingsData = await _supabase
+        .from('bookings')
+        .select()
+        .eq('vehicle_id', vehicleId)
+        .inFilter('status', ['confirmed', 'pending']);
 
     int overlappingDays = 0;
-    final totalDays = 30; // Janela de análise
+    final totalDays = 30;
 
-    for (var doc in bookings.docs) {
-      final booking = BookingModel.fromMap(doc.data(), doc.id);
+    for (var bookingData in bookingsData) {
+      final booking = BookingModel.fromMap(bookingData);
 
-      // Calcular sobreposição
       if (booking.startDate.isBefore(endDate) &&
           booking.endDate.isAfter(startDate)) {
         overlappingDays += booking.numberOfDays;
@@ -343,39 +318,32 @@ class RecommendationService {
 
     final occupancyRate = overlappingDays / totalDays;
 
-    if (occupancyRate > 0.8) return 1.3; // Alta demanda
-    if (occupancyRate > 0.6) return 1.15; // Demanda moderada
-    if (occupancyRate < 0.3) return 0.9; // Baixa demanda
+    if (occupancyRate > 0.8) return 1.3;
+    if (occupancyRate > 0.6) return 1.15;
+    if (occupancyRate < 0.3) return 0.9;
 
     return 1.0;
   }
 
-  // Calcular multiplicador de sazonalidade
   double _calculateSeasonMultiplier(DateTime date) {
     final month = date.month;
 
-    // Verão (alta temporada)
     if (month >= 6 && month <= 8) return 1.2;
-
-    // Primavera e Outono
     if ((month >= 3 && month <= 5) || (month >= 9 && month <= 11)) return 1.1;
 
-    // Inverno (baixa temporada)
     return 0.9;
   }
 
-  // Calcular multiplicador de antecedência
   double _calculateAdvanceMultiplier(DateTime startDate) {
     final daysInAdvance = startDate.difference(DateTime.now()).inDays;
 
-    if (daysInAdvance <= 2) return 1.2; // Última hora
-    if (daysInAdvance <= 7) return 1.1; // Uma semana
-    if (daysInAdvance >= 30) return 0.95; // Reserva antecipada
+    if (daysInAdvance <= 2) return 1.2;
+    if (daysInAdvance <= 7) return 1.1;
+    if (daysInAdvance >= 30) return 0.95;
 
     return 1.0;
   }
 
-  // Métodos auxiliares
   List<String> _sortByValue(Map<String, int> map) {
     var entries = map.entries.toList();
     entries.sort((a, b) => b.value.compareTo(a.value));
@@ -383,7 +351,7 @@ class RecommendationService {
   }
 }
 
-// Modelos auxiliares
+/// Perfil do utilizador para recomendações.
 class UserProfile {
   final String userId;
   final List<String> preferredCategories;
@@ -402,6 +370,7 @@ class UserProfile {
   });
 }
 
+/// Recomendação de veículo com pontuação e razões.
 class VehicleRecommendation {
   final VehicleModel vehicle;
   final double score;

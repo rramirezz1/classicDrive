@@ -1,6 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-// Cotação de seguro
+/// Cotação de seguro para uma reserva.
 class InsuranceQuote {
   final String id;
   final String bookingId;
@@ -35,41 +33,41 @@ class InsuranceQuote {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'bookingId': bookingId,
-      'vehicleId': vehicleId,
-      'partnerId': partnerId,
-      'partnerName': partnerName,
-      'coverageType': coverageType,
-      'coverageDetails': coverageDetails,
-      'vehicleValue': vehicleValue,
-      'dailyRate': dailyRate,
-      'totalPremium': totalPremium,
+      'booking_id': bookingId,
+      'vehicle_id': vehicleId,
+      'partner_id': partnerId,
+      'partner_name': partnerName,
+      'coverage_type': coverageType,
+      'coverage_details': coverageDetails,
+      'vehicle_value': vehicleValue,
+      'daily_rate': dailyRate,
+      'total_premium': totalPremium,
       'deductible': deductible,
-      'validUntil': Timestamp.fromDate(validUntil),
-      'createdAt': Timestamp.fromDate(createdAt),
+      'valid_until': validUntil.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
     };
   }
 
   factory InsuranceQuote.fromMap(Map<String, dynamic> map) {
     return InsuranceQuote(
       id: map['id'] ?? '',
-      bookingId: map['bookingId'] ?? '',
-      vehicleId: map['vehicleId'] ?? '',
-      partnerId: map['partnerId'] ?? '',
-      partnerName: map['partnerName'] ?? '',
-      coverageType: map['coverageType'] ?? '',
-      coverageDetails: Map<String, dynamic>.from(map['coverageDetails'] ?? {}),
-      vehicleValue: (map['vehicleValue'] ?? 0).toDouble(),
-      dailyRate: (map['dailyRate'] ?? 0).toDouble(),
-      totalPremium: (map['totalPremium'] ?? 0).toDouble(),
+      bookingId: map['booking_id'] ?? '',
+      vehicleId: map['vehicle_id'] ?? '',
+      partnerId: map['partner_id'] ?? '',
+      partnerName: map['partner_name'] ?? '',
+      coverageType: map['coverage_type'] ?? '',
+      coverageDetails: Map<String, dynamic>.from(map['coverage_details'] ?? {}),
+      vehicleValue: (map['vehicle_value'] ?? 0).toDouble(),
+      dailyRate: (map['daily_rate'] ?? 0).toDouble(),
+      totalPremium: (map['total_premium'] ?? 0).toDouble(),
       deductible: (map['deductible'] ?? 0).toDouble(),
-      validUntil: (map['validUntil'] as Timestamp).toDate(),
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      validUntil: DateTime.parse(map['valid_until']),
+      createdAt: DateTime.parse(map['created_at']),
     );
   }
 }
 
-// Apólice de seguro
+/// Apólice de seguro ativa.
 class InsurancePolicy {
   final String policyNumber;
   final String quoteId;
@@ -83,7 +81,7 @@ class InsurancePolicy {
   final DateTime endDate;
   final double premium;
   final double deductible;
-  final String status; // active, expired, cancelled
+  final String status;
   final String paymentMethod;
   final String paymentStatus;
   final DateTime createdAt;
@@ -113,64 +111,63 @@ class InsurancePolicy {
 
   Map<String, dynamic> toMap() {
     return {
-      'policyNumber': policyNumber,
-      'quoteId': quoteId,
-      'bookingId': bookingId,
-      'vehicleId': vehicleId,
-      'partnerId': partnerId,
-      'partnerName': partnerName,
-      'coverageType': coverageType,
-      'coverageDetails': coverageDetails,
-      'startDate': Timestamp.fromDate(startDate),
-      'endDate': Timestamp.fromDate(endDate),
+      'policy_number': policyNumber,
+      'quote_id': quoteId,
+      'booking_id': bookingId,
+      'vehicle_id': vehicleId,
+      'partner_id': partnerId,
+      'partner_name': partnerName,
+      'coverage_type': coverageType,
+      'coverage_details': coverageDetails,
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate.toIso8601String(),
       'premium': premium,
       'deductible': deductible,
       'status': status,
-      'paymentMethod': paymentMethod,
-      'paymentStatus': paymentStatus,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'cancelledAt':
-          cancelledAt != null ? Timestamp.fromDate(cancelledAt!) : null,
-      'cancellationReason': cancellationReason,
+      'payment_method': paymentMethod,
+      'payment_status': paymentStatus,
+      'created_at': createdAt.toIso8601String(),
+      'cancelled_at': cancelledAt?.toIso8601String(),
+      'cancellation_reason': cancellationReason,
     };
   }
 
   factory InsurancePolicy.fromMap(Map<String, dynamic> map) {
     return InsurancePolicy(
-      policyNumber: map['policyNumber'] ?? '',
-      quoteId: map['quoteId'] ?? '',
-      bookingId: map['bookingId'] ?? '',
-      vehicleId: map['vehicleId'] ?? '',
-      partnerId: map['partnerId'] ?? '',
-      partnerName: map['partnerName'] ?? '',
-      coverageType: map['coverageType'] ?? '',
-      coverageDetails: Map<String, dynamic>.from(map['coverageDetails'] ?? {}),
-      startDate: (map['startDate'] as Timestamp).toDate(),
-      endDate: (map['endDate'] as Timestamp).toDate(),
+      policyNumber: map['policy_number'] ?? '',
+      quoteId: map['quote_id'] ?? '',
+      bookingId: map['booking_id'] ?? '',
+      vehicleId: map['vehicle_id'] ?? '',
+      partnerId: map['partner_id'] ?? '',
+      partnerName: map['partner_name'] ?? '',
+      coverageType: map['coverage_type'] ?? '',
+      coverageDetails: Map<String, dynamic>.from(map['coverage_details'] ?? {}),
+      startDate: DateTime.parse(map['start_date']),
+      endDate: DateTime.parse(map['end_date']),
       premium: (map['premium'] ?? 0).toDouble(),
       deductible: (map['deductible'] ?? 0).toDouble(),
       status: map['status'] ?? '',
-      paymentMethod: map['paymentMethod'] ?? '',
-      paymentStatus: map['paymentStatus'] ?? '',
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
-      cancelledAt: map['cancelledAt'] != null
-          ? (map['cancelledAt'] as Timestamp).toDate()
+      paymentMethod: map['payment_method'] ?? '',
+      paymentStatus: map['payment_status'] ?? '',
+      createdAt: DateTime.parse(map['created_at']),
+      cancelledAt: map['cancelled_at'] != null
+          ? DateTime.parse(map['cancelled_at'])
           : null,
-      cancellationReason: map['cancellationReason'],
+      cancellationReason: map['cancellation_reason'],
     );
   }
 
   bool get isActive => status == 'active' && endDate.isAfter(DateTime.now());
 }
 
-// Sinistro/Claim
+/// Sinistro de seguro.
 class InsuranceClaim {
   final String claimNumber;
   final String policyNumber;
-  final String type; // accident, theft, damage
+  final String type;
   final String description;
   final List<String> photos;
-  final String status; // submitted, in_review, approved, rejected, paid
+  final String status;
   final double estimatedAmount;
   final double? approvedAmount;
   final double deductible;
@@ -199,43 +196,43 @@ class InsuranceClaim {
 
   Map<String, dynamic> toMap() {
     return {
-      'claimNumber': claimNumber,
-      'policyNumber': policyNumber,
+      'claim_number': claimNumber,
+      'policy_number': policyNumber,
       'type': type,
       'description': description,
       'photos': photos,
       'status': status,
-      'estimatedAmount': estimatedAmount,
-      'approvedAmount': approvedAmount,
+      'estimated_amount': estimatedAmount,
+      'approved_amount': approvedAmount,
       'deductible': deductible,
-      'submittedAt': Timestamp.fromDate(submittedAt),
-      'reviewedAt': reviewedAt != null ? Timestamp.fromDate(reviewedAt!) : null,
-      'resolvedAt': resolvedAt != null ? Timestamp.fromDate(resolvedAt!) : null,
-      'reviewNotes': reviewNotes,
-      'additionalInfo': additionalInfo,
+      'submitted_at': submittedAt.toIso8601String(),
+      'reviewed_at': reviewedAt?.toIso8601String(),
+      'resolved_at': resolvedAt?.toIso8601String(),
+      'review_notes': reviewNotes,
+      'additional_info': additionalInfo,
     };
   }
 
   factory InsuranceClaim.fromMap(Map<String, dynamic> map) {
     return InsuranceClaim(
-      claimNumber: map['claimNumber'] ?? '',
-      policyNumber: map['policyNumber'] ?? '',
+      claimNumber: map['claim_number'] ?? '',
+      policyNumber: map['policy_number'] ?? '',
       type: map['type'] ?? '',
       description: map['description'] ?? '',
       photos: List<String>.from(map['photos'] ?? []),
       status: map['status'] ?? '',
-      estimatedAmount: (map['estimatedAmount'] ?? 0).toDouble(),
-      approvedAmount: map['approvedAmount']?.toDouble(),
+      estimatedAmount: (map['estimated_amount'] ?? 0).toDouble(),
+      approvedAmount: map['approved_amount']?.toDouble(),
       deductible: (map['deductible'] ?? 0).toDouble(),
-      submittedAt: (map['submittedAt'] as Timestamp).toDate(),
-      reviewedAt: map['reviewedAt'] != null
-          ? (map['reviewedAt'] as Timestamp).toDate()
+      submittedAt: DateTime.parse(map['submitted_at']),
+      reviewedAt: map['reviewed_at'] != null
+          ? DateTime.parse(map['reviewed_at'])
           : null,
-      resolvedAt: map['resolvedAt'] != null
-          ? (map['resolvedAt'] as Timestamp).toDate()
+      resolvedAt: map['resolved_at'] != null
+          ? DateTime.parse(map['resolved_at'])
           : null,
-      reviewNotes: map['reviewNotes'],
-      additionalInfo: Map<String, dynamic>.from(map['additionalInfo'] ?? {}),
+      reviewNotes: map['review_notes'],
+      additionalInfo: Map<String, dynamic>.from(map['additional_info'] ?? {}),
     );
   }
 }

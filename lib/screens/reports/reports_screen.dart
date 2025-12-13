@@ -19,12 +19,11 @@ class ReportsScreen extends StatelessWidget {
         elevation: 0,
       ),
       body: StreamBuilder<List<VehicleModel>>(
-        stream:
-            databaseService.getVehiclesByOwner(authService.currentUser!.uid),
+        stream: databaseService.getVehiclesByOwner(authService.currentUser!.id),
         builder: (context, vehicleSnapshot) {
           return StreamBuilder<List<BookingModel>>(
             stream: databaseService.getUserBookings(
-              authService.currentUser!.uid,
+              authService.currentUser!.id,
               asOwner: true,
             ),
             builder: (context, bookingSnapshot) {

@@ -4,7 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../services/database_service.dart';
 import '../../models/vehicle_model.dart';
+import '../../widgets/modern_card.dart';
+import '../../widgets/modern_input.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_shadows.dart';
 
+/// Ecrã de pesquisa de veículos com design moderno.
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
@@ -42,7 +47,6 @@ class _SearchScreenState extends State<SearchScreen> {
   void _applyFilters() {
     setState(() {
       _filteredVehicles = _allVehicles.where((vehicle) {
-        // Filtro de pesquisa por texto
         if (_searchController.text.isNotEmpty) {
           final searchTerm = _searchController.text.toLowerCase();
           if (!vehicle.fullName.toLowerCase().contains(searchTerm) &&
@@ -52,19 +56,16 @@ class _SearchScreenState extends State<SearchScreen> {
           }
         }
 
-        // Filtro de categoria
         if (_selectedCategory != 'all' &&
             vehicle.category != _selectedCategory) {
           return false;
         }
 
-        // Filtro de preço
         if (vehicle.pricePerDay < _priceRange.start ||
             vehicle.pricePerDay > _priceRange.end) {
           return false;
         }
 
-        // Filtro de avaliação
         if (vehicle.stats.rating < _minRating) {
           return false;
         }
@@ -76,97 +77,135 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
-        title: const Text('Procurar Veículos'),
+        title: Text(
+          'Procurar Veículos',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Column(
         children: [
           // Barra de pesquisa
           Container(
             padding: const EdgeInsets.all(16),
-            color: Theme.of(context).colorScheme.surface,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCard : AppColors.lightCard,
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
+              ),
+            ),
             child: Column(
               children: [
-                TextField(
-                  controller: _searchController,
-                  onChanged: (_) => _applyFilters(),
-                  decoration: InputDecoration(
-                    hintText: 'Pesquisar marca, modelo...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _showFilters
-                            ? Icons.filter_list_off
-                            : Icons.filter_list,
+                Row(
+                  children: [
+                    Expanded(
+                      child: ModernSearchField(
+                        controller: _searchController,
+                        hintText: 'Pesquisar marca, modelo...',
+                        onChanged: (_) => _applyFilters(),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _showFilters = !_showFilters;
-                        });
-                      },
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () => setState(() => _showFilters = !_showFilters),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _showFilters
+                              ? AppColors.primary.withOpacity(0.15)
+                              : (isDark
+                                  ? AppColors.darkCardHover
+                                  : AppColors.lightCardHover),
+                          borderRadius: AppRadius.borderRadiusMd,
+                          border: Border.all(
+                            color: _showFilters
+                                ? AppColors.primary
+                                : (isDark
+                                    ? AppColors.darkBorder
+                                    : AppColors.lightBorder),
+                          ),
+                        ),
+                        child: Icon(
+                          _showFilters
+                              ? Icons.filter_list_off_rounded
+                              : Icons.filter_list_rounded,
+                          color: _showFilters
+                              ? AppColors.primary
+                              : (isDark
+                                  ? AppColors.darkTextSecondary
+                                  : Colors.grey),
+                          size: 22,
+                        ),
+                      ),
                     ),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  ),
+                  ],
                 ),
 
                 // Filtros expandíveis
-                AnimatedContainer(
+                AnimatedCrossFade(
+                  firstChild: const SizedBox.shrink(),
+                  secondChild: _buildFilters(isDark),
+                  crossFadeState: _showFilters
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
                   duration: const Duration(milliseconds: 300),
-                  height: _showFilters ? null : 0,
-                  child: _showFilters ? _buildFilters() : null,
                 ),
               ],
+            ),
+          ),
+
+          // Contador de resultados
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Text(
+              '${_filteredVehicles.length} veículo${_filteredVehicles.length != 1 ? 's' : ''} encontrado${_filteredVehicles.length != 1 ? 's' : ''}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
             ),
           ),
 
           // Resultados
           Expanded(
             child: _filteredVehicles.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search_off,
-                          size: 80,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Nenhum veículo encontrado',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Tente ajustar os filtros',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
+                ? _buildEmptyState(isDark)
                 : GridView.builder(
                     padding: const EdgeInsets.all(16),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 0.75,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.72,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                     ),
                     itemCount: _filteredVehicles.length,
                     itemBuilder: (context, index) {
-                      return _VehicleGridCard(
-                          vehicle: _filteredVehicles[index]);
+                      return TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        duration:
+                            Duration(milliseconds: 200 + (index * 30).clamp(0, 200)),
+                        builder: (context, value, child) {
+                          return Transform.scale(
+                            scale: 0.8 + (0.2 * value),
+                            child: Opacity(opacity: value, child: child),
+                          );
+                        },
+                        child:
+                            _VehicleGridCard(vehicle: _filteredVehicles[index]),
+                      );
                     },
                   ),
           ),
@@ -175,119 +214,211 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(bool isDark) {
     return Container(
       padding: const EdgeInsets.only(top: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Categoria
-          const Text(
+          Text(
             'Categoria',
-            style: TextStyle(fontWeight: FontWeight.w600),
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
+          const SizedBox(height: 10),
+          _buildCategoryChips(isDark),
+          const SizedBox(height: 18),
+
+          // Preço
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _CategoryChip(
-                label: 'Todos',
-                value: 'all',
-                groupValue: _selectedCategory,
-                onSelected: (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                    _applyFilters();
-                  });
-                },
+              Text(
+                'Preço por dia',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
-              _CategoryChip(
-                label: 'Clássicos',
-                value: 'classic',
-                groupValue: _selectedCategory,
-                onSelected: (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                    _applyFilters();
-                  });
-                },
-              ),
-              _CategoryChip(
-                label: 'Vintage',
-                value: 'vintage',
-                groupValue: _selectedCategory,
-                onSelected: (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                    _applyFilters();
-                  });
-                },
-              ),
-              _CategoryChip(
-                label: 'Luxo',
-                value: 'luxury',
-                groupValue: _selectedCategory,
-                onSelected: (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                    _applyFilters();
-                  });
-                },
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: AppRadius.borderRadiusFull,
+                ),
+                child: Text(
+                  '€${_priceRange.start.toInt()} - €${_priceRange.end.toInt()}',
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-
-          // Preço
-          Text(
-            'Preço por dia: €${_priceRange.start.toInt()} - €${_priceRange.end.toInt()}',
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          RangeSlider(
-            values: _priceRange,
-            min: 0,
-            max: 500,
-            divisions: 50,
-            labels: RangeLabels(
-              '€${_priceRange.start.toInt()}',
-              '€${_priceRange.end.toInt()}',
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: AppColors.primary,
+              inactiveTrackColor: AppColors.primary.withOpacity(0.2),
+              thumbColor: AppColors.primary,
+              overlayColor: AppColors.primary.withOpacity(0.1),
             ),
-            onChanged: (values) {
-              setState(() {
-                _priceRange = values;
-                _applyFilters();
-              });
-            },
+            child: RangeSlider(
+              values: _priceRange,
+              min: 0,
+              max: 500,
+              divisions: 50,
+              onChanged: (values) {
+                setState(() {
+                  _priceRange = values;
+                  _applyFilters();
+                });
+              },
+            ),
           ),
 
           // Avaliação mínima
           Row(
             children: [
-              const Text(
+              Text(
                 'Avaliação mínima:',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
-              const SizedBox(width: 16),
+              const Spacer(),
               Row(
                 children: List.generate(5, (index) {
-                  return IconButton(
-                    icon: Icon(
-                      index < _minRating ? Icons.star : Icons.star_border,
-                      color: Colors.amber,
-                    ),
-                    onPressed: () {
+                  return GestureDetector(
+                    onTap: () {
                       setState(() {
-                        _minRating = index + 1.0;
                         if (_minRating == index + 1) {
-                          _minRating = 0; // Reset se clicar na mesma estrela
+                          _minRating = 0;
+                        } else {
+                          _minRating = index + 1.0;
                         }
                         _applyFilters();
                       });
                     },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Icon(
+                        index < _minRating
+                            ? Icons.star_rounded
+                            : Icons.star_border_rounded,
+                        color: AppColors.accent,
+                        size: 26,
+                      ),
+                    ),
                   );
                 }),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryChips(bool isDark) {
+    final categories = [
+      ('all', 'Todos'),
+      ('classic', 'Clássicos'),
+      ('vintage', 'Vintage'),
+      ('luxury', 'Luxo'),
+      ('sports', 'Desportivo'),
+      ('exotic', 'Exótico'),
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: categories.map((cat) {
+          final isSelected = _selectedCategory == cat.$1;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedCategory = cat.$1;
+                  _applyFilters();
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary.withOpacity(0.15)
+                      : (isDark
+                          ? AppColors.darkCardHover
+                          : AppColors.lightCardHover),
+                  borderRadius: AppRadius.borderRadiusFull,
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.primary
+                        : (isDark
+                            ? AppColors.darkBorder
+                            : AppColors.lightBorder),
+                  ),
+                ),
+                child: Text(
+                  cat.$2,
+                  style: TextStyle(
+                    color: isSelected
+                        ? AppColors.primary
+                        : (isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.lightTextPrimary),
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.search_off_rounded,
+              size: 48,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Nenhum veículo encontrado',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tente ajustar os filtros',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.lightTextSecondary,
+                ),
           ),
         ],
       ),
@@ -301,32 +432,6 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-class _CategoryChip extends StatelessWidget {
-  final String label;
-  final String value;
-  final String groupValue;
-  final ValueChanged<String> onSelected;
-
-  const _CategoryChip({
-    required this.label,
-    required this.value,
-    required this.groupValue,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelected = value == groupValue;
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => onSelected(value),
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      selectedColor: Theme.of(context).colorScheme.primaryContainer,
-    );
-  }
-}
-
 class _VehicleGridCard extends StatelessWidget {
   final VehicleModel vehicle;
 
@@ -334,76 +439,86 @@ class _VehicleGridCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push('/vehicle/${vehicle.vehicleId}'),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Imagem
-            Expanded(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return ModernCard(
+      useGlass: false,
+      padding: EdgeInsets.zero,
+      onTap: () => context.push('/vehicle/${vehicle.vehicleId}'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Imagem
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
               child: Container(
                 width: double.infinity,
-                color: Colors.grey[300],
+                color: isDark ? AppColors.darkCardHover : Colors.grey[200],
                 child: vehicle.images.isNotEmpty
                     ? CachedNetworkImage(
                         imageUrl: vehicle.images.first,
                         fit: BoxFit.cover,
                       )
-                    : const Icon(
-                        Icons.directions_car,
-                        size: 48,
-                        color: Colors.grey,
+                    : Icon(
+                        Icons.directions_car_rounded,
+                        size: 40,
+                        color: isDark
+                            ? AppColors.darkTextTertiary
+                            : Colors.grey,
                       ),
               ),
             ),
-            // Informações
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    vehicle.fullName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+          ),
+          // Informações
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  vehicle.fullName,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '€${vehicle.pricePerDay.toStringAsFixed(0)}/dia',
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '€${vehicle.pricePerDay.toStringAsFixed(0)}/dia',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w600,
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.star_rounded,
+                          size: 14,
+                          color: AppColors.accent,
                         ),
-                      ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            size: 14,
-                            color: Colors.amber,
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            vehicle.stats.rating.toStringAsFixed(1),
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                        const SizedBox(width: 2),
+                        Text(
+                          vehicle.stats.rating.toStringAsFixed(1),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -8,7 +8,14 @@ import '../../services/database_service.dart';
 import '../../models/vehicle_model.dart';
 import '../../utils/constants.dart';
 import '../../utils/validators.dart';
+import '../../widgets/modern_card.dart';
+import '../../widgets/modern_button.dart';
+import '../../widgets/modern_input.dart';
+import '../../widgets/loading_widgets.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_shadows.dart';
 
+/// Ecrã de adicionar veículo com design moderno.
 class AddVehicleScreen extends StatefulWidget {
   const AddVehicleScreen({super.key});
 
@@ -44,6 +51,57 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     super.dispose();
   }
 
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderRadiusMd),
+      ),
+    );
+  }
+
+  void _showWarningSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: AppColors.warning,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderRadiusMd),
+      ),
+    );
+  }
+
+  void _showSuccessSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_outline, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderRadiusMd),
+      ),
+    );
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -59,15 +117,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         });
       }
     } catch (e) {
-      print('Erro ao selecionar imagem: $e');
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao selecionar imagem: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showErrorSnackbar('Erro ao selecionar imagem: ${e.toString()}');
     }
   }
 
@@ -78,35 +129,81 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   }
 
   void _showImageSourceDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Câmara'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.camera);
-                },
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : AppColors.lightCard,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Handle
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder,
+                      borderRadius: AppRadius.borderRadiusFull,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Adicionar Foto',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _SourceOption(
+                          icon: Icons.camera_alt_rounded,
+                          label: 'Câmara',
+                          color: AppColors.primary,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _pickImage(ImageSource.camera);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _SourceOption(
+                          icon: Icons.photo_library_rounded,
+                          label: 'Galeria',
+                          color: AppColors.accent,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _pickImage(ImageSource.gallery);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancelar'),
+                    ),
+                  ),
+                ],
               ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Galeria'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.cancel),
-                title: const Text('Cancelar'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
+            ),
           ),
         );
       },
@@ -115,492 +212,69 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Adicionar Veículo'),
+        title: Text(
+          'Adicionar Veículo',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
-          TextButton(
-            onPressed: _isLoading ? null : _saveVehicle,
-            child: const Text('GUARDAR', style: TextStyle(color: Colors.white)),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: TextButton.icon(
+              onPressed: _isLoading ? null : _saveVehicle,
+              icon: const Icon(Icons.check_rounded),
+              label: const Text('Guardar'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+              ),
+            ),
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('A guardar veículo...'),
-                ],
-              ),
-            )
+          ? LoadingWidgets.formLoading(message: 'A guardar veículo...')
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Card de Imagens
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Fotografias',
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                Text(
-                                  '${_images.length}/5',
-                                  style: TextStyle(
-                                    color: _images.isEmpty
-                                        ? Colors.red
-                                        : Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Adicione pelo menos uma foto do veículo',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                            const SizedBox(height: 16),
+                    // Imagens
+                    _buildImagesSection(isDark),
+                    const SizedBox(height: 20),
 
-                            // Grid de imagens
-                            SizedBox(
-                              height: 120,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: _images.length +
-                                    (_images.length < 5 ? 1 : 0),
-                                itemBuilder: (context, index) {
-                                  if (index == _images.length) {
-                                    // Botão adicionar
-                                    return GestureDetector(
-                                      onTap: _showImageSourceDialog,
-                                      child: Container(
-                                        width: 120,
-                                        margin: const EdgeInsets.only(right: 8),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: Colors.grey.shade300,
-                                            width: 2,
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.add_a_photo,
-                                              size: 32,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              'Adicionar',
-                                              style: TextStyle(
-                                                color: Colors.grey.shade600,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  }
+                    // Informações Básicas
+                    _buildBasicInfoSection(isDark),
+                    const SizedBox(height: 20),
 
-                                  // Imagem
-                                  return Container(
-                                    width: 120,
-                                    margin: const EdgeInsets.only(right: 8),
-                                    child: Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          child: Image.file(
-                                            _images[index],
-                                            width: 120,
-                                            height: 120,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                        Positioned(
-                                          top: 4,
-                                          right: 4,
-                                          child: GestureDetector(
-                                            onTap: () => _removeImage(index),
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.red,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              padding: const EdgeInsets.all(4),
-                                              child: const Icon(
-                                                Icons.close,
-                                                color: Colors.white,
-                                                size: 16,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // Detalhes
+                    _buildDetailsSection(isDark),
+                    const SizedBox(height: 20),
 
-                    const SizedBox(height: 16),
+                    // Eventos
+                    _buildEventTypesSection(isDark),
+                    const SizedBox(height: 20),
 
-                    // Card de Informações Básicas
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Informações Básicas',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _brandController,
-                              decoration: const InputDecoration(
-                                labelText: 'Marca *',
-                                hintText: 'Ex: Mercedes-Benz',
-                                prefixIcon: Icon(Icons.directions_car),
-                              ),
-                              validator: (value) =>
-                                  Validators.required(value, 'Marca'),
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _modelController,
-                              decoration: const InputDecoration(
-                                labelText: 'Modelo *',
-                                hintText: 'Ex: 280 SL',
-                                prefixIcon: Icon(Icons.badge),
-                              ),
-                              validator: (value) =>
-                                  Validators.required(value, 'Modelo'),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _yearController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Ano *',
-                                      hintText: 'Ex: 1971',
-                                      prefixIcon: Icon(Icons.calendar_today),
-                                    ),
-                                    keyboardType: TextInputType.number,
-                                    validator: Validators.vehicleYear,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: DropdownButtonFormField<String>(
-                                    value: _selectedCategory,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Categoria *',
-                                      prefixIcon: Icon(Icons.category),
-                                    ),
-                                    items: const [
-                                      DropdownMenuItem(
-                                          value: 'classic',
-                                          child: Text('Clássico')),
-                                      DropdownMenuItem(
-                                          value: 'vintage',
-                                          child: Text('Vintage')),
-                                      DropdownMenuItem(
-                                          value: 'luxury', child: Text('Luxo')),
-                                    ],
-                                    onChanged: (value) {
-                                      setState(
-                                          () => _selectedCategory = value!);
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Card de Detalhes
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Detalhes e Localização',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _descriptionController,
-                              decoration: const InputDecoration(
-                                labelText: 'Descrição *',
-                                hintText:
-                                    'Descreva o veículo, história, estado de conservação...',
-                                prefixIcon: Icon(Icons.description),
-                                alignLabelWithHint: true,
-                              ),
-                              maxLines: 4,
-                              validator: (value) =>
-                                  Validators.description(value, minLength: 50),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _priceController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Preço por dia (€) *',
-                                      hintText: 'Ex: 250',
-                                      prefixIcon: Icon(Icons.euro),
-                                    ),
-                                    keyboardType: TextInputType.number,
-                                    validator: Validators.price,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _cityController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Cidade *',
-                                      hintText: 'Ex: Porto',
-                                      prefixIcon: Icon(Icons.location_city),
-                                    ),
-                                    validator: (value) =>
-                                        Validators.required(value, 'Cidade'),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Card de Eventos
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Tipos de Evento',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const Text(
-                              'Selecione pelo menos um tipo de evento',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                            const SizedBox(height: 16),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                ChoiceChip(
-                                  label: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Icon(Icons.favorite, size: 18),
-                                      SizedBox(width: 4),
-                                      Text('Casamento'),
-                                    ],
-                                  ),
-                                  selected:
-                                      _selectedEventTypes.contains('wedding'),
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        _selectedEventTypes.add('wedding');
-                                      } else {
-                                        _selectedEventTypes.remove('wedding');
-                                      }
-                                    });
-                                  },
-                                ),
-                                ChoiceChip(
-                                  label: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Icon(Icons.celebration, size: 18),
-                                      SizedBox(width: 4),
-                                      Text('Festa'),
-                                    ],
-                                  ),
-                                  selected:
-                                      _selectedEventTypes.contains('party'),
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        _selectedEventTypes.add('party');
-                                      } else {
-                                        _selectedEventTypes.remove('party');
-                                      }
-                                    });
-                                  },
-                                ),
-                                ChoiceChip(
-                                  label: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Icon(Icons.camera_alt, size: 18),
-                                      SizedBox(width: 4),
-                                      Text('Fotografia'),
-                                    ],
-                                  ),
-                                  selected: _selectedEventTypes
-                                      .contains('photoshoot'),
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        _selectedEventTypes.add('photoshoot');
-                                      } else {
-                                        _selectedEventTypes
-                                            .remove('photoshoot');
-                                      }
-                                    });
-                                  },
-                                ),
-                                ChoiceChip(
-                                  label: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Icon(Icons.map, size: 18),
-                                      SizedBox(width: 4),
-                                      Text('Tour'),
-                                    ],
-                                  ),
-                                  selected:
-                                      _selectedEventTypes.contains('tour'),
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        _selectedEventTypes.add('tour');
-                                      } else {
-                                        _selectedEventTypes.remove('tour');
-                                      }
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Card de Características
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Características',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const Text(
-                              'Selecione as características do veículo',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                            const SizedBox(height: 16),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children:
-                                  Constants.vehicleFeatures.map((feature) {
-                                IconData icon;
-                                switch (feature.toLowerCase()) {
-                                  case 'ac':
-                                    icon = Icons.ac_unit;
-                                    break;
-                                  case 'chauffeur':
-                                    icon = Icons.person;
-                                    break;
-                                  case 'decorated':
-                                    icon = Icons.auto_awesome;
-                                    break;
-                                  case 'gps':
-                                    icon = Icons.gps_fixed;
-                                    break;
-                                  case 'bluetooth':
-                                    icon = Icons.bluetooth;
-                                    break;
-                                  case 'usb charger':
-                                    icon = Icons.usb;
-                                    break;
-                                  default:
-                                    icon = Icons.check;
-                                }
-
-                                return FilterChip(
-                                  avatar: Icon(icon, size: 18),
-                                  label: Text(feature),
-                                  selected: _selectedFeatures.contains(feature),
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        _selectedFeatures.add(feature);
-                                      } else {
-                                        _selectedFeatures.remove(feature);
-                                      }
-                                    });
-                                  },
-                                );
-                              }).toList(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
+                    // Características
+                    _buildFeaturesSection(isDark),
+                    const SizedBox(height: 32),
 
                     // Botão guardar
                     SizedBox(
                       width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton.icon(
+                      child: ModernButton.primary(
+                        text: 'Guardar Veículo',
+                        icon: Icons.save_rounded,
+                        isLoading: _isLoading,
                         onPressed: _isLoading ? null : _saveVehicle,
-                        icon: const Icon(Icons.save),
-                        label: const Text('Guardar Veículo'),
                       ),
                     ),
 
@@ -612,34 +286,631 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     );
   }
 
+  Widget _buildImagesSection(bool isDark) {
+    return ModernCard(
+      useGlass: false,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+            'Fotografias',
+            Icons.photo_camera_rounded,
+            AppColors.primary,
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: _images.isEmpty
+                    ? AppColors.error.withOpacity(0.1)
+                    : AppColors.success.withOpacity(0.1),
+                borderRadius: AppRadius.borderRadiusFull,
+              ),
+              child: Text(
+                '${_images.length}/5',
+                style: TextStyle(
+                  color: _images.isEmpty ? AppColors.error : AppColors.success,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Adicione pelo menos uma foto do veículo',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 120,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _images.length + (_images.length < 5 ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == _images.length) {
+                        return _buildAddImageButton(isDark);
+                      }
+                      return _buildImageThumbnail(index, isDark);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddImageButton(bool isDark) {
+    return GestureDetector(
+      onTap: _showImageSourceDialog,
+      child: Container(
+        width: 120,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: AppColors.primary.withOpacity(0.5),
+            width: 2,
+            style: BorderStyle.solid,
+          ),
+          borderRadius: AppRadius.borderRadiusMd,
+          color: AppColors.primary.withOpacity(0.05),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.add_a_photo_rounded,
+                size: 24,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Adicionar',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageThumbnail(int index, bool isDark) {
+    return Container(
+      width: 120,
+      margin: const EdgeInsets.only(right: 12),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: AppRadius.borderRadiusMd,
+            child: Image.file(
+              _images[index],
+              width: 120,
+              height: 120,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned(
+            top: 6,
+            right: 6,
+            child: GestureDetector(
+              onTap: () => _removeImage(index),
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: AppColors.error,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close_rounded,
+                  color: Colors.white,
+                  size: 14,
+                ),
+              ),
+            ),
+          ),
+          if (index == 0)
+            Positioned(
+              bottom: 6,
+              left: 6,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: AppRadius.borderRadiusSm,
+                ),
+                child: const Text(
+                  'Principal',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBasicInfoSection(bool isDark) {
+    return ModernCard(
+      useGlass: false,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+            'Informações Básicas',
+            Icons.info_outline_rounded,
+            AppColors.info,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                ModernInput(
+                  controller: _brandController,
+                  labelText: 'Marca',
+                  hintText: 'Ex: Mercedes-Benz',
+                  prefixIcon: Icons.directions_car_rounded,
+                  validator: (value) => Validators.required(value, 'Marca'),
+                ),
+                const SizedBox(height: 16),
+                ModernInput(
+                  controller: _modelController,
+                  labelText: 'Modelo',
+                  hintText: 'Ex: 280 SL',
+                  prefixIcon: Icons.badge_rounded,
+                  validator: (value) => Validators.required(value, 'Modelo'),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ModernInput(
+                        controller: _yearController,
+                        labelText: 'Ano',
+                        hintText: 'Ex: 1971',
+                        prefixIcon: Icons.calendar_today_rounded,
+                        keyboardType: TextInputType.number,
+                        validator: Validators.vehicleYear,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Categoria',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.darkCardHover
+                                  : AppColors.lightCardHover,
+                              borderRadius: AppRadius.borderRadiusMd,
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.darkBorder
+                                    : AppColors.lightBorder,
+                              ),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedCategory,
+                                isExpanded: true,
+                                items: const [
+                                  DropdownMenuItem(
+                                      value: 'classic', child: Text('Clássico')),
+                                  DropdownMenuItem(
+                                      value: 'vintage', child: Text('Vintage')),
+                                  DropdownMenuItem(
+                                      value: 'luxury', child: Text('Luxo')),
+                                ],
+                                onChanged: (value) {
+                                  setState(() => _selectedCategory = value!);
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailsSection(bool isDark) {
+    return ModernCard(
+      useGlass: false,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+            'Detalhes e Localização',
+            Icons.description_rounded,
+            AppColors.accent,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                ModernInput(
+                  controller: _descriptionController,
+                  labelText: 'Descrição',
+                  hintText:
+                      'Descreva o veículo, história, estado de conservação...',
+                  prefixIcon: Icons.notes_rounded,
+                  maxLines: 4,
+                  validator: (value) =>
+                      Validators.description(value, minLength: 50),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ModernInput(
+                        controller: _priceController,
+                        labelText: 'Preço por dia (€)',
+                        hintText: 'Ex: 250',
+                        prefixIcon: Icons.euro_rounded,
+                        keyboardType: TextInputType.number,
+                        validator: Validators.price,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ModernInput(
+                        controller: _cityController,
+                        labelText: 'Cidade',
+                        hintText: 'Ex: Porto',
+                        prefixIcon: Icons.location_city_rounded,
+                        validator: (value) =>
+                            Validators.required(value, 'Cidade'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventTypesSection(bool isDark) {
+    final eventTypes = [
+      ('wedding', '💒', 'Casamento'),
+      ('party', '🎉', 'Festa'),
+      ('photoshoot', '📸', 'Fotografia'),
+      ('tour', '🚗', 'Tour'),
+    ];
+
+    return ModernCard(
+      useGlass: false,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+            'Tipos de Evento',
+            Icons.event_rounded,
+            AppColors.success,
+            trailing: _selectedEventTypes.isEmpty
+                ? Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withOpacity(0.1),
+                      borderRadius: AppRadius.borderRadiusFull,
+                    ),
+                    child: const Text(
+                      'Obrigatório',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                : null,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Selecione pelo menos um tipo de evento',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: eventTypes.map((event) {
+                    final isSelected = _selectedEventTypes.contains(event.$1);
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (isSelected) {
+                            _selectedEventTypes.remove(event.$1);
+                          } else {
+                            _selectedEventTypes.add(event.$1);
+                          }
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.success.withOpacity(0.15)
+                              : (isDark
+                                  ? AppColors.darkCardHover
+                                  : AppColors.lightCardHover),
+                          borderRadius: AppRadius.borderRadiusFull,
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.success
+                                : (isDark
+                                    ? AppColors.darkBorder
+                                    : AppColors.lightBorder),
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(event.$2, style: const TextStyle(fontSize: 16)),
+                            const SizedBox(width: 8),
+                            Text(
+                              event.$3,
+                              style: TextStyle(
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                                color: isSelected
+                                    ? AppColors.success
+                                    : (isDark
+                                        ? AppColors.darkTextPrimary
+                                        : AppColors.lightTextPrimary),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeaturesSection(bool isDark) {
+    return ModernCard(
+      useGlass: false,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+            'Características',
+            Icons.auto_awesome_rounded,
+            AppColors.warning,
+            trailing: Text(
+              '${_selectedFeatures.length} selecionadas',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextTertiary
+                        : AppColors.lightTextTertiary,
+                  ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Selecione as características do veículo',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: Constants.vehicleFeatures.map((feature) {
+                    IconData icon;
+                    switch (feature.toLowerCase()) {
+                      case 'ac':
+                        icon = Icons.ac_unit_rounded;
+                        break;
+                      case 'chauffeur':
+                        icon = Icons.person_rounded;
+                        break;
+                      case 'decorated':
+                        icon = Icons.celebration_rounded;
+                        break;
+                      case 'gps':
+                        icon = Icons.gps_fixed_rounded;
+                        break;
+                      case 'bluetooth':
+                        icon = Icons.bluetooth_rounded;
+                        break;
+                      case 'usb charger':
+                        icon = Icons.usb_rounded;
+                        break;
+                      default:
+                        icon = Icons.check_rounded;
+                    }
+
+                    final isSelected = _selectedFeatures.contains(feature);
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (isSelected) {
+                            _selectedFeatures.remove(feature);
+                          } else {
+                            _selectedFeatures.add(feature);
+                          }
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.warning.withOpacity(0.15)
+                              : (isDark
+                                  ? AppColors.darkCardHover
+                                  : AppColors.lightCardHover),
+                          borderRadius: AppRadius.borderRadiusFull,
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.warning
+                                : (isDark
+                                    ? AppColors.darkBorder
+                                    : AppColors.lightBorder),
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              icon,
+                              size: 16,
+                              color: isSelected
+                                  ? AppColors.warning
+                                  : (isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.lightTextSecondary),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              feature,
+                              style: TextStyle(
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                                color: isSelected
+                                    ? AppColors.warning
+                                    : (isDark
+                                        ? AppColors.darkTextPrimary
+                                        : AppColors.lightTextPrimary),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(
+    String title,
+    IconData icon,
+    Color color, {
+    Widget? trailing,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: AppRadius.borderRadiusSm,
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          if (trailing != null) ...[
+            const Spacer(),
+            trailing,
+          ],
+        ],
+      ),
+    );
+  }
+
   Future<void> _saveVehicle() async {
     if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, preencha todos os campos obrigatórios'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      _showWarningSnackbar('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
     if (_selectedEventTypes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Selecione pelo menos um tipo de evento'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      _showWarningSnackbar('Selecione pelo menos um tipo de evento');
       return;
     }
 
     if (_images.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Adicione pelo menos uma fotografia'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      _showWarningSnackbar('Adicione pelo menos uma fotografia');
       return;
     }
 
@@ -650,9 +921,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       final databaseService =
           Provider.of<DatabaseService>(context, listen: false);
 
-      // Criar o veículo primeiro
       final vehicle = VehicleModel(
-        ownerId: authService.currentUser!.uid,
+        ownerId: authService.currentUser!.id,
         brand: _brandController.text.trim(),
         model: _modelController.text.trim(),
         year: int.parse(_yearController.text),
@@ -660,7 +930,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         eventTypes: _selectedEventTypes,
         description: _descriptionController.text.trim(),
         features: _selectedFeatures,
-        images: [], // Vazio por agora
+        images: [],
         pricePerDay: double.parse(_priceController.text),
         location: {
           'city': _cityController.text.trim(),
@@ -672,31 +942,25 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           'blockedDates': [],
         },
         validation: ValidationStatus(
-          status: 'approved', // Auto-aprovar para teste
+          status: 'approved',
           validatedAt: DateTime.now(),
           validatedBy: 'system',
           documents: null,
         ),
         stats: VehicleStats(
           totalBookings: 0,
-          rating: 4.5,
+          rating: 0.0,
           views: 0,
         ),
         createdAt: DateTime.now(),
       );
 
-      // Adicionar veículo à base de dados
       final vehicleId = await databaseService.addVehicle(vehicle);
 
       if (vehicleId != null) {
-        // Upload das imagens
-        print('A fazer upload de ${_images.length} imagens...');
         final imageUrls =
             await databaseService.uploadVehicleImages(vehicleId, _images);
 
-        print('Upload concluído: ${imageUrls.length} URLs');
-
-        // Atualizar veículo com as URLs das imagens
         if (imageUrls.isNotEmpty) {
           await databaseService.updateVehicle(vehicleId, {
             'images': imageUrls,
@@ -705,13 +969,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
         if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Veículo adicionado com sucesso!'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        _showSuccessSnackbar('Veículo adicionado com sucesso!');
 
         await Future.delayed(const Duration(milliseconds: 500));
 
@@ -721,20 +979,63 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         throw Exception('Erro ao adicionar veículo');
       }
     } catch (e) {
-      print('Erro ao guardar veículo: $e');
-
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showErrorSnackbar('Erro: ${e.toString()}');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
+  }
+}
+
+class _SourceOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _SourceOption({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: AppRadius.borderRadiusLg,
+          border: Border.all(
+            color: color.withOpacity(0.3),
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

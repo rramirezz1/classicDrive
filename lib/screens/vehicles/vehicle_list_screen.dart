@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../services/database_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/vehicle_model.dart';
 import '../../utils/constants.dart';
 import '../../widgets/loading_widgets.dart';
-import '../../widgets/animated_widgets.dart';
+import '../../widgets/modern_card.dart';
+import '../../widgets/modern_input.dart';
+import '../../widgets/modern_button.dart';
+import '../../providers/comparison_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_shadows.dart';
 
+/// Ecrã de lista de veículos com design moderno.
 class VehicleListScreen extends StatefulWidget {
   final bool showOnlyMine;
   final String? category;
@@ -29,7 +36,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   String? _selectedEventType;
   double _minPrice = 0;
   double _maxPrice = 1000;
-  String _sortBy = 'recent'; // recent, price_low, price_high, rating
+  String _sortBy = 'recent';
   bool _showFilters = false;
 
   final TextEditingController _searchController = TextEditingController();
@@ -37,7 +44,6 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   @override
   void initState() {
     super.initState();
-    // Se veio com categoria pré-selecionada
     if (widget.category != null) {
       _selectedCategory = widget.category;
     }
@@ -53,274 +59,392 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
     final isOwner = authService.isOwner;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.showOnlyMine
-            ? 'Meus Veículos'
-            : widget.categoryTitle ?? 'Veículos'),
-        elevation: 0,
-        actions: [
-          if (isOwner && (widget.showOnlyMine || !widget.showOnlyMine))
-            AnimatedWidgets.fadeInContent(
-              delay: const Duration(milliseconds: 200),
-              child: IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () => context.push('/add-vehicle'),
-                tooltip: 'Adicionar Veículo',
-              ),
-            ),
-          // Só mostra filtros se não for tela de categoria específica
-          if (widget.category == null)
-            AnimatedWidgets.fadeInContent(
-              delay: const Duration(milliseconds: 300),
-              child: IconButton(
-                icon: Icon(
-                    _showFilters ? Icons.filter_list_off : Icons.filter_list),
-                onPressed: () {
-                  setState(() {
-                    _showFilters = !_showFilters;
-                  });
-                },
-                tooltip: 'Filtros',
-              ),
-            ),
-        ],
-      ),
-      body: Column(
+      appBar: _buildAppBar(context, isOwner, isDark),
+      body: Stack(
         children: [
-          // Barra de pesquisa com animação
-          AnimatedWidgets.fadeInContent(
-            delay: const Duration(milliseconds: 100),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+          CustomScrollView(
+            slivers: [
+              // Barra de pesquisa e filtros
+              SliverToBoxAdapter(
+                child: _buildSearchAndFilters(context, isDark),
               ),
-              child: Column(
-                children: [
-                  // Campo de pesquisa
-                  TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Pesquisar por marca, modelo...',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                setState(() {
-                                  _searchController.clear();
-                                });
-                              },
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                    ),
-                    onChanged: (value) => setState(() {}),
-                  ),
 
-                  // Filtros expandidos com animação (só se não for categoria específica)
-                  if (widget.category == null)
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      height: _showFilters ? null : 0,
-                      child: _showFilters
-                          ? AnimatedWidgets.fadeInContent(
-                              duration: const Duration(milliseconds: 200),
-                              child: Column(
-                                children: [
-                                  const SizedBox(height: 16),
-                                  _buildFilters(),
-                                ],
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                ],
+              // Lista de veículos
+              SliverFillRemaining(
+                hasScrollBody: true,
+                child: _buildVehicleList(isDark),
               ),
-            ),
+            ],
           ),
 
-          // Lista de veículos
-          Expanded(
-            child: _buildVehicleList(),
-          ),
+          // Botão de comparação flutuante
+          _buildCompareButton(context),
         ],
       ),
     );
   }
 
-  Widget _buildFilters() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Categorias
-        const Text(
-          'Categoria',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          children: [
-            FilterChip(
-              label: const Text('Todas'),
-              selected: _selectedCategory == null,
-              onSelected: (selected) {
-                setState(() {
-                  _selectedCategory = null;
-                });
-              },
+  PreferredSizeWidget _buildAppBar(
+    BuildContext context,
+    bool isOwner,
+    bool isDark,
+  ) {
+    return AppBar(
+      title: Text(
+        widget.showOnlyMine
+            ? 'Meus Veículos'
+            : widget.categoryTitle ?? 'Veículos',
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
-            ...Constants.vehicleCategories.map((category) {
-              return FilterChip(
-                label: Text(category == 'classic'
-                    ? 'Clássicos'
-                    : category == 'vintage'
-                        ? 'Vintage'
-                        : 'Luxo'),
-                selected: _selectedCategory == category,
-                onSelected: (selected) {
-                  setState(() {
-                    _selectedCategory = selected ? category : null;
-                  });
-                },
-              );
-            }),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        // Tipo de evento
-        const Text(
-          'Tipo de Evento',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          children: [
-            FilterChip(
-              label: const Text('Todos'),
-              selected: _selectedEventType == null,
-              onSelected: (selected) {
-                setState(() {
-                  _selectedEventType = null;
-                });
-              },
+      ),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      actions: [
+        if (isOwner)
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withOpacity(0.1),
+                  borderRadius: AppRadius.borderRadiusMd,
+                ),
+                child: const Icon(
+                  Icons.add_rounded,
+                  color: AppColors.success,
+                  size: 20,
+                ),
+              ),
+              onPressed: () => context.push('/add-vehicle'),
+              tooltip: 'Adicionar Veículo',
             ),
-            ...Constants.eventTypes.map((type) {
-              return FilterChip(
-                label: Text(type == 'wedding'
-                    ? 'Casamento'
-                    : type == 'party'
-                        ? 'Festa'
-                        : type == 'photoshoot'
-                            ? 'Fotografia'
-                            : 'Tour'),
-                selected: _selectedEventType == type,
-                onSelected: (selected) {
-                  setState(() {
-                    _selectedEventType = selected ? type : null;
-                  });
-                },
-              );
-            }),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        // Faixa de preço
-        Row(
-          children: [
-            const Text(
-              'Preço por dia: ',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '€${_minPrice.toInt()} - €${_maxPrice.toInt()}',
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
-          ],
-        ),
-        RangeSlider(
-          values: RangeValues(_minPrice, _maxPrice),
-          min: 0,
-          max: 1000,
-          divisions: 20,
-          labels: RangeLabels(
-            '€${_minPrice.toInt()}',
-            '€${_maxPrice.toInt()}',
           ),
-          onChanged: (values) {
-            setState(() {
-              _minPrice = values.start;
-              _maxPrice = values.end;
-            });
-          },
-        ),
-
-        const SizedBox(height: 16),
-
-        // Ordenar por
-        Row(
-          children: [
-            const Text(
-              'Ordenar por: ',
-              style: TextStyle(fontWeight: FontWeight.bold),
+        if (widget.category == null)
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (_showFilters ? AppColors.primary : AppColors.info)
+                      .withOpacity(0.1),
+                  borderRadius: AppRadius.borderRadiusMd,
+                ),
+                child: Icon(
+                  _showFilters
+                      ? Icons.filter_list_off_rounded
+                      : Icons.filter_list_rounded,
+                  color: _showFilters ? AppColors.primary : AppColors.info,
+                  size: 20,
+                ),
+              ),
+              onPressed: () => setState(() => _showFilters = !_showFilters),
+              tooltip: 'Filtros',
             ),
-            const SizedBox(width: 8),
-            DropdownButton<String>(
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSearchAndFilters(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          // Campo de pesquisa
+          ModernSearchField(
+            controller: _searchController,
+            hintText: 'Pesquisar por marca, modelo...',
+            onChanged: (value) => setState(() {}),
+            onClear: () => setState(() => _searchController.clear()),
+          ),
+
+          // Filtros expandidos
+          if (widget.category == null)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: _showFilters
+                  ? Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        _buildFilters(isDark),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilters(bool isDark) {
+    return ModernCard(
+      useGlass: false,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Categorias
+          _buildFilterSection(
+            'Categoria',
+            Icons.category_rounded,
+            AppColors.accent,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildFilterChip(
+                'Todas',
+                _selectedCategory == null,
+                () => setState(() => _selectedCategory = null),
+                isDark,
+              ),
+              ...Constants.vehicleCategories.map((category) {
+                return _buildFilterChip(
+                  category == 'classic'
+                      ? 'Clássicos'
+                      : category == 'vintage'
+                          ? 'Vintage'
+                          : 'Luxo',
+                  _selectedCategory == category,
+                  () => setState(() {
+                    _selectedCategory =
+                        _selectedCategory == category ? null : category;
+                  }),
+                  isDark,
+                );
+              }),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Tipo de evento
+          _buildFilterSection(
+            'Tipo de Evento',
+            Icons.event_rounded,
+            AppColors.info,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildFilterChip(
+                'Todos',
+                _selectedEventType == null,
+                () => setState(() => _selectedEventType = null),
+                isDark,
+              ),
+              ...Constants.eventTypes.map((type) {
+                return _buildFilterChip(
+                  type == 'wedding'
+                      ? 'Casamento'
+                      : type == 'party'
+                          ? 'Festa'
+                          : type == 'photoshoot'
+                              ? 'Fotografia'
+                              : 'Tour',
+                  _selectedEventType == type,
+                  () => setState(() {
+                    _selectedEventType =
+                        _selectedEventType == type ? null : type;
+                  }),
+                  isDark,
+                );
+              }),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Faixa de preço
+          _buildFilterSection(
+            'Preço por dia',
+            Icons.euro_rounded,
+            AppColors.success,
+            trailing: Text(
+              '€${_minPrice.toInt()} - €${_maxPrice.toInt()}',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          RangeSlider(
+            values: RangeValues(_minPrice, _maxPrice),
+            min: 0,
+            max: 1000,
+            divisions: 20,
+            activeColor: AppColors.primary,
+            inactiveColor: AppColors.primary.withOpacity(0.2),
+            labels: RangeLabels(
+              '€${_minPrice.toInt()}',
+              '€${_maxPrice.toInt()}',
+            ),
+            onChanged: (values) {
+              setState(() {
+                _minPrice = values.start;
+                _maxPrice = values.end;
+              });
+            },
+          ),
+
+          const SizedBox(height: 20),
+
+          // Ordenar por
+          _buildFilterSection(
+            'Ordenar por',
+            Icons.sort_rounded,
+            AppColors.primaryEnd,
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCardHover : AppColors.lightCardHover,
+              borderRadius: AppRadius.borderRadiusMd,
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+            ),
+            child: DropdownButton<String>(
               value: _sortBy,
+              isExpanded: true,
+              underline: const SizedBox(),
+              dropdownColor: isDark ? AppColors.darkCard : AppColors.lightCard,
               items: const [
-                DropdownMenuItem(value: 'recent', child: Text('Mais recentes')),
+                DropdownMenuItem(
+                    value: 'recent', child: Text('Mais recentes')),
                 DropdownMenuItem(
                     value: 'price_low', child: Text('Preço: menor')),
                 DropdownMenuItem(
                     value: 'price_high', child: Text('Preço: maior')),
                 DropdownMenuItem(value: 'rating', child: Text('Avaliação')),
               ],
-              onChanged: (value) {
-                setState(() {
-                  _sortBy = value!;
-                });
-              },
+              onChanged: (value) => setState(() => _sortBy = value!),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterSection(String title, IconData icon, Color color,
+      {Widget? trailing}) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: AppRadius.borderRadiusSm,
+          ),
+          child: Icon(icon, color: color, size: 16),
         ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        if (trailing != null) ...[
+          const Spacer(),
+          trailing,
+        ],
       ],
     );
   }
 
-  Widget _buildVehicleList() {
+  Widget _buildFilterChip(
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+    bool isDark,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary
+              : (isDark ? AppColors.darkCardHover : AppColors.lightCardHover),
+          borderRadius: AppRadius.borderRadiusFull,
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected
+                ? Colors.white
+                : (isDark
+                    ? AppColors.darkTextPrimary
+                    : AppColors.lightTextPrimary),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompareButton(BuildContext context) {
+    return Positioned(
+      bottom: 20,
+      right: 20,
+      child: Consumer<ComparisonProvider>(
+        builder: (context, provider, child) {
+          if (provider.isEmpty) return const SizedBox.shrink();
+          return Container(
+            decoration: BoxDecoration(
+              boxShadow: AppShadows.primaryGlow,
+              borderRadius: AppRadius.borderRadiusFull,
+            ),
+            child: FloatingActionButton.extended(
+              onPressed: () => context.push('/compare'),
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white),
+              label: Text(
+                'Comparar (${provider.count})',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildVehicleList(bool isDark) {
     final databaseService =
         Provider.of<DatabaseService>(context, listen: false);
     final authService = Provider.of<AuthService>(context);
 
-    // Determinar qual stream usar
     Stream<List<VehicleModel>> vehicleStream;
 
     if (widget.showOnlyMine && authService.isOwner) {
-      // Mostrar apenas veículos do proprietário
       vehicleStream =
-          databaseService.getVehiclesByOwner(authService.currentUser!.uid);
+          databaseService.getVehiclesByOwner(authService.currentUser!.id);
     } else {
-      // Mostrar todos os veículos aprovados
       vehicleStream = databaseService.getApprovedVehicles();
     }
 
@@ -332,95 +456,30 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
         }
 
         if (snapshot.hasError) {
-          return AnimatedWidgets.fadeInContent(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                  const SizedBox(height: 16),
-                  Text('Erro: ${snapshot.error}'),
-                  const SizedBox(height: 16),
-                  AnimatedWidgets.animatedButton(
-                    text: 'Tentar novamente',
-                    icon: Icons.refresh,
-                    onPressed: () => setState(() {}),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return _buildErrorState(snapshot.error.toString(), isDark);
         }
 
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return AnimatedWidgets.fadeInContent(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.directions_car_outlined,
-                    size: 80,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.showOnlyMine
-                        ? 'Ainda não tem veículos\nClique em + para adicionar'
-                        : widget.categoryTitle != null
-                            ? 'Nenhum veículo ${widget.categoryTitle!.toLowerCase()} disponível'
-                            : authService.isOwner
-                                ? 'Ainda não tem veículos\nClique em + para adicionar'
-                                : 'Não há veículos disponíveis',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  if ((widget.showOnlyMine || authService.isOwner) &&
-                      widget.categoryTitle == null) ...[
-                    const SizedBox(height: 24),
-                    AnimatedWidgets.animatedButton(
-                      text: 'Adicionar Veículo',
-                      icon: Icons.add,
-                      onPressed: () => context.push('/add-vehicle'),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          );
+          return _buildEmptyState(authService, isDark);
         }
 
-        // Filtrar e ordenar veículos
         var vehicles = _filterAndSortVehicles(snapshot.data!);
 
         if (vehicles.isEmpty) {
-          return AnimatedWidgets.fadeInContent(
-            child: const Center(
-              child:
-                  Text('Nenhum veículo encontrado com os filtros selecionados'),
-            ),
-          );
+          return _buildNoResultsState(isDark);
         }
 
-        // Exibir lista de veículos
         return RefreshIndicator(
           onRefresh: () async {
             setState(() {});
-            // Pequeno delay para mostrar a animação
             await Future.delayed(const Duration(milliseconds: 500));
           },
+          color: AppColors.primary,
           child: ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             itemCount: vehicles.length,
             itemBuilder: (context, index) {
-              return AnimatedListItem(
-                index: index,
-                delay: const Duration(milliseconds: 50),
-                child: _buildVehicleListItem(vehicles[index]),
-              );
+              return _buildVehicleCard(vehicles[index], isDark, index);
             },
           ),
         );
@@ -428,10 +487,155 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
     );
   }
 
+  Widget _buildErrorState(String error, bool isDark) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: AppColors.error,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Ocorreu um erro',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ModernButton.primary(
+              text: 'Tentar novamente',
+              icon: Icons.refresh_rounded,
+              onPressed: () => setState(() {}),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(AuthService authService, bool isDark) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.directions_car_outlined,
+                size: 56,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              widget.showOnlyMine
+                  ? 'Ainda não tem veículos'
+                  : 'Sem veículos disponíveis',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.showOnlyMine
+                  ? 'Adicione o seu primeiro veículo para começar'
+                  : 'Volte mais tarde para ver novos veículos',
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+            if ((widget.showOnlyMine || authService.isOwner) &&
+                widget.categoryTitle == null) ...[
+              const SizedBox(height: 24),
+              ModernButton.primary(
+                text: 'Adicionar Veículo',
+                icon: Icons.add_rounded,
+                onPressed: () => context.push('/add-vehicle'),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoResultsState(bool isDark) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.search_off_rounded,
+                size: 48,
+                color: AppColors.warning,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Nenhum resultado',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tente ajustar os filtros de pesquisa',
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ModernButton.secondary(
+              text: 'Limpar Filtros',
+              icon: Icons.filter_list_off_rounded,
+              onPressed: () {
+                setState(() {
+                  _selectedCategory = null;
+                  _selectedEventType = null;
+                  _minPrice = 0;
+                  _maxPrice = 1000;
+                  _searchController.clear();
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   List<VehicleModel> _filterAndSortVehicles(List<VehicleModel> vehicles) {
-    // Aplicar filtros
     var filtered = vehicles.where((vehicle) {
-      // Filtro de pesquisa
       if (_searchController.text.isNotEmpty) {
         final search = _searchController.text.toLowerCase();
         if (!vehicle.brand.toLowerCase().contains(search) &&
@@ -441,19 +645,16 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
         }
       }
 
-      // Filtro de categoria (considera categoria vinda por parâmetro)
       final effectiveCategory = widget.category ?? _selectedCategory;
       if (effectiveCategory != null && vehicle.category != effectiveCategory) {
         return false;
       }
 
-      // Filtro de tipo de evento
       if (_selectedEventType != null &&
           !vehicle.eventTypes.contains(_selectedEventType)) {
         return false;
       }
 
-      // Filtro de preço
       if (vehicle.pricePerDay < _minPrice || vehicle.pricePerDay > _maxPrice) {
         return false;
       }
@@ -461,7 +662,6 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       return true;
     }).toList();
 
-    // Ordenar
     switch (_sortBy) {
       case 'price_low':
         filtered.sort((a, b) => a.pricePerDay.compareTo(b.pricePerDay));
@@ -480,280 +680,469 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
     return filtered;
   }
 
-  Widget _buildVehicleListItem(VehicleModel vehicle) {
-    return AnimatedWidgets.animatedVehicleCard(
-      // CARD ANIMADO
-      onTap: () => context.push('/vehicle/${vehicle.vehicleId}'),
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 16),
-        clipBehavior: Clip.antiAlias,
-        elevation: 3,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // HERO ANIMATION PARA IMAGEM
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: vehicle.images.isNotEmpty
-                  ? AnimatedWidgets.heroVehicleImage(
-                      vehicleId: vehicle.vehicleId!,
-                      imageUrl: vehicle.images.first,
-                      fit: BoxFit.cover,
-                      placeholder: Container(
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                      errorWidget: Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.error),
-                      ),
-                    )
-                  : Container(
-                      color: Colors.grey[300],
-                      child: const Icon(
-                        Icons.directions_car,
-                        size: 64,
-                        color: Colors.grey,
-                      ),
-                    ),
+  Widget _buildVehicleCard(VehicleModel vehicle, bool isDark, int index) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final isOwnerOfVehicle = widget.showOnlyMine ||
+        vehicle.ownerId == authService.currentUser?.id;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 300 + (index * 50)),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - value)),
+          child: Opacity(opacity: value, child: child),
+        );
+      },
+      child: GestureDetector(
+        onTap: () => context.push('/vehicle/${vehicle.vehicleId}'),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : AppColors.lightCard,
+            borderRadius: AppRadius.borderRadiusLg,
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
             ),
-
-            // Informações
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Título e preço
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          vehicle.fullName,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '€${vehicle.pricePerDay.toStringAsFixed(0)}/dia',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Categoria e localização
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.category_outlined,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        vehicle.category == 'classic'
-                            ? 'Clássico'
-                            : vehicle.category == 'vintage'
-                                ? 'Vintage'
-                                : 'Luxo',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                      const SizedBox(width: 16),
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        vehicle.location['city'] ?? 'Porto',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Avaliação e características
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          ...List.generate(5, (index) {
-                            return Icon(
-                              index < vehicle.stats.rating.round()
-                                  ? Icons.star
-                                  : Icons.star_border,
-                              size: 16,
-                              color: Colors.amber,
-                            );
-                          }),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${vehicle.stats.rating.toStringAsFixed(1)} (${vehicle.stats.totalBookings})',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (vehicle.features.isNotEmpty)
-                        Wrap(
-                          spacing: 8,
-                          children: vehicle.features.take(3).map((feature) {
-                            IconData icon;
-                            switch (feature.toLowerCase()) {
-                              case 'ac':
-                                icon = Icons.ac_unit;
-                                break;
-                              case 'chauffeur':
-                                icon = Icons.person;
-                                break;
-                              case 'decorated':
-                                icon = Icons.auto_awesome;
-                                break;
-                              default:
-                                icon = Icons.check;
-                            }
-                            return Icon(icon,
-                                size: 16, color: Colors.grey[600]);
-                          }).toList(),
-                        ),
-                    ],
-                  ),
-
-                  // Status (para proprietários ou na tela "Meus Veículos")
-                  if (Provider.of<AuthService>(context).isOwner ||
-                      widget.showOnlyMine) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: vehicle.validation.status == 'approved'
-                            ? Colors.green.withOpacity(0.1)
-                            : vehicle.validation.status == 'pending'
-                                ? Colors.orange.withOpacity(0.1)
-                                : Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        vehicle.validation.status == 'approved'
-                            ? 'Aprovado'
-                            : vehicle.validation.status == 'pending'
-                                ? 'Pendente'
-                                : 'Rejeitado',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: vehicle.validation.status == 'approved'
-                              ? Colors.green
-                              : vehicle.validation.status == 'pending'
-                                  ? Colors.orange
-                                  : Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+            boxShadow: isDark ? AppShadows.softShadowDark : AppShadows.softShadow,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Imagem
+              AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _buildVehicleImage(vehicle, isDark),
+                    _buildImageOverlay(),
+                    _buildPriceBadge(vehicle),
+                    if (isOwnerOfVehicle) _buildDeleteButton(vehicle),
+                    _buildCompareButton2(vehicle),
                   ],
-                ],
+                ),
               ),
-            ),
-          ],
+
+              // Informações
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildVehicleTitle(vehicle),
+                    const SizedBox(height: 10),
+                    _buildVehicleDetails(vehicle, isDark),
+                    const SizedBox(height: 10),
+                    _buildVehicleRating(vehicle, isDark),
+                    if (authService.isOwner || widget.showOnlyMine)
+                      _buildStatusBadge(vehicle),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
-// Classe auxiliar para animação de itens da lista
-class AnimatedListItem extends StatefulWidget {
-  final int index;
-  final Duration delay;
-  final Widget child;
-
-  const AnimatedListItem({
-    super.key,
-    required this.index,
-    required this.delay,
-    required this.child,
-  });
-
-  @override
-  State<AnimatedListItem> createState() => _AnimatedListItemState();
-}
-
-class _AnimatedListItemState extends State<AnimatedListItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
-
-    // Delay baseado no índice
-    Future.delayed(
-      Duration(milliseconds: widget.index * widget.delay.inMilliseconds),
-      () {
-        if (mounted) _controller.forward();
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: widget.child,
+  Widget _buildVehicleImage(VehicleModel vehicle, bool isDark) {
+    if (vehicle.images.isNotEmpty) {
+      return Hero(
+        tag: 'vehicle-${vehicle.vehicleId}',
+        child: CachedNetworkImage(
+          imageUrl: vehicle.images.first,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => Container(
+            color: isDark ? AppColors.darkCardHover : AppColors.lightCardHover,
+            child: const Center(child: CircularProgressIndicator()),
           ),
-        );
-      },
+          errorWidget: (context, url, error) => Container(
+            color: isDark ? AppColors.darkCardHover : AppColors.lightCardHover,
+            child: const Icon(Icons.error),
+          ),
+        ),
+      );
+    }
+    return Container(
+      color: isDark ? AppColors.darkCardHover : AppColors.lightCardHover,
+      child: Icon(
+        Icons.directions_car_rounded,
+        size: 64,
+        color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+      ),
     );
+  }
+
+  Widget _buildImageOverlay() {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 80,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [
+              Colors.black.withOpacity(0.6),
+              Colors.transparent,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPriceBadge(VehicleModel vehicle) {
+    return Positioned(
+      bottom: 12,
+      left: 12,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: AppRadius.borderRadiusFull,
+        ),
+        child: Text(
+          '€${vehicle.pricePerDay.toStringAsFixed(0)}/dia',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeleteButton(VehicleModel vehicle) {
+    return Positioned(
+      top: 12,
+      left: 12,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.4),
+          borderRadius: AppRadius.borderRadiusMd,
+        ),
+        child: IconButton(
+          icon: const Icon(
+            Icons.delete_outline_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
+          onPressed: () => _confirmDelete(context, vehicle),
+          tooltip: 'Apagar Veículo',
+          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          padding: EdgeInsets.zero,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompareButton2(VehicleModel vehicle) {
+    return Positioned(
+      top: 12,
+      right: 12,
+      child: Consumer<ComparisonProvider>(
+        builder: (context, provider, _) {
+          final isSelected = provider.isSelected(vehicle);
+          return Container(
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.success.withOpacity(0.9)
+                  : Colors.black.withOpacity(0.4),
+              borderRadius: AppRadius.borderRadiusMd,
+            ),
+            child: IconButton(
+              icon: Icon(
+                isSelected
+                    ? Icons.check_circle_rounded
+                    : Icons.add_circle_outline_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              onPressed: () {
+                if (!isSelected && !provider.canAdd) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.white),
+                          SizedBox(width: 12),
+                          Text('Máximo de 3 veículos para comparação'),
+                        ],
+                      ),
+                      backgroundColor: AppColors.warning,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: AppRadius.borderRadiusMd),
+                    ),
+                  );
+                  return;
+                }
+                provider.toggleVehicle(vehicle);
+              },
+              tooltip: 'Comparar',
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+              padding: EdgeInsets.zero,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildVehicleTitle(VehicleModel vehicle) {
+    return Text(
+      vehicle.fullName,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildVehicleDetails(VehicleModel vehicle, bool isDark) {
+    final tertiaryColor =
+        isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary;
+
+    return Row(
+      children: [
+        Icon(Icons.category_outlined, size: 14, color: tertiaryColor),
+        const SizedBox(width: 4),
+        Text(
+          vehicle.category == 'classic'
+              ? 'Clássico'
+              : vehicle.category == 'vintage'
+                  ? 'Vintage'
+                  : 'Luxo',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(width: 16),
+        Icon(Icons.location_on_outlined, size: 14, color: tertiaryColor),
+        const SizedBox(width: 4),
+        Text(
+          vehicle.location['city'] ?? 'Porto',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVehicleRating(VehicleModel vehicle, bool isDark) {
+    return Row(
+      children: [
+        ...List.generate(5, (index) {
+          return Icon(
+            index < vehicle.stats.rating.round()
+                ? Icons.star_rounded
+                : Icons.star_outline_rounded,
+            size: 16,
+            color: AppColors.accent,
+          );
+        }),
+        const SizedBox(width: 6),
+        Text(
+          '${vehicle.stats.rating.toStringAsFixed(1)} (${vehicle.stats.totalReviews})',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const Spacer(),
+        if (vehicle.features.isNotEmpty)
+          ...vehicle.features.take(3).map((feature) {
+            IconData icon;
+            switch (feature.toLowerCase()) {
+              case 'ac':
+                icon = Icons.ac_unit_rounded;
+                break;
+              case 'chauffeur':
+                icon = Icons.person_rounded;
+                break;
+              case 'decorated':
+                icon = Icons.auto_awesome_rounded;
+                break;
+              default:
+                icon = Icons.check_rounded;
+            }
+            return Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Icon(
+                icon,
+                size: 16,
+                color: isDark
+                    ? AppColors.darkTextTertiary
+                    : AppColors.lightTextTertiary,
+              ),
+            );
+          }),
+      ],
+    );
+  }
+
+  Widget _buildStatusBadge(VehicleModel vehicle) {
+    Color statusColor;
+    String statusText;
+
+    switch (vehicle.validation.status) {
+      case 'approved':
+        statusColor = AppColors.success;
+        statusText = 'Aprovado';
+        break;
+      case 'pending':
+        statusColor = AppColors.warning;
+        statusText = 'Pendente';
+        break;
+      default:
+        statusColor = AppColors.error;
+        statusText = 'Rejeitado';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: AppRadius.borderRadiusFull,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: statusColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            statusText,
+            style: TextStyle(
+              fontSize: 12,
+              color: statusColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, VehicleModel vehicle) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderRadiusLg),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.1),
+                borderRadius: AppRadius.borderRadiusSm,
+              ),
+              child: const Icon(
+                Icons.delete_forever_rounded,
+                color: AppColors.error,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Apagar Veículo'),
+          ],
+        ),
+        content: Text(
+          'Tem a certeza que deseja apagar o veículo "${vehicle.brand} ${vehicle.model}"? Esta ação não pode ser desfeita.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+            ),
+            child: const Text('Apagar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final databaseService =
+          Provider.of<DatabaseService>(context, listen: false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(width: 12),
+              Text('A apagar veículo...'),
+            ],
+          ),
+          backgroundColor: AppColors.info,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.borderRadiusMd),
+        ),
+      );
+
+      final success = await databaseService.deleteVehicle(vehicle.vehicleId!);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle_outline, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text('Veículo apagado com sucesso'),
+                ],
+              ),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: AppRadius.borderRadiusMd),
+            ),
+          );
+          setState(() {});
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text('Erro ao apagar veículo'),
+                ],
+              ),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: AppRadius.borderRadiusMd),
+            ),
+          );
+        }
+      }
+    }
   }
 }

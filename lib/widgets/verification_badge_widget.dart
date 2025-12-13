@@ -68,7 +68,7 @@ class VerificationBadge extends StatelessWidget {
 
   Widget _buildUnverifiedBadge(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
-    final isCurrentUser = authService.currentUser?.uid == user!.uid;
+    final isCurrentUser = authService.currentUser?.id == user!.uid;
 
     if (!isCurrentUser || !interactive) return const SizedBox.shrink();
 
@@ -153,115 +153,117 @@ class _VerificationDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
-    final isCurrentUser = authService.currentUser?.uid == user.uid;
+    final isCurrentUser = authService.currentUser?.id == user.uid;
 
     return AnimatedWidgets.fadeInContent(
       child: Container(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Indicador
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Indicador
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Ícone e título
-            Icon(
-              user.hasKYC ? Icons.verified_user : Icons.shield_outlined,
-              size: 64,
-              color: user.hasKYC ? Colors.green : Colors.grey,
-            ),
-            const SizedBox(height: 16),
-
-            Text(
-              user.hasKYC
-                  ? 'Conta Verificada'
-                  : user.isPendingVerification
-                      ? 'Verificação em Análise'
-                      : 'Conta Não Verificada',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+              // Ícone e título
+              Icon(
+                user.hasKYC ? Icons.verified_user : Icons.shield_outlined,
+                size: 64,
+                color: user.hasKYC ? Colors.green : Colors.grey,
               ),
-            ),
+              const SizedBox(height: 16),
 
-            const SizedBox(height: 8),
-
-            Text(
-              user.hasKYC
-                  ? 'Este utilizador passou pelo processo de verificação de identidade'
-                  : user.isPendingVerification
-                      ? 'Os documentos estão em análise'
-                      : 'Este utilizador ainda não verificou a sua identidade',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Detalhes da verificação
-            if (user.hasKYC) ...[
-              _buildVerificationItem(
-                icon: Icons.badge,
-                title: 'Identidade verificada',
-                subtitle: 'Documento de identificação validado',
-                verified: true,
+              Text(
+                user.hasKYC
+                    ? 'Conta Verificada'
+                    : user.isPendingVerification
+                        ? 'Verificação em Análise'
+                        : 'Conta Não Verificada',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              _buildVerificationItem(
-                icon: Icons.drive_eta,
-                title: 'Carta de condução',
-                subtitle: 'Habilitação para conduzir confirmada',
-                verified: true,
+
+              const SizedBox(height: 8),
+
+              Text(
+                user.hasKYC
+                    ? 'Este utilizador passou pelo processo de verificação de identidade'
+                    : user.isPendingVerification
+                        ? 'Os documentos estão em análise'
+                        : 'Este utilizador ainda não verificou a sua identidade',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600]),
               ),
-              if (user.verificationLevel == 'full')
+
+              const SizedBox(height: 24),
+
+              // Detalhes da verificação
+              if (user.hasKYC) ...[
                 _buildVerificationItem(
-                  icon: Icons.home,
-                  title: 'Morada confirmada',
-                  subtitle: 'Comprovativo de residência validado',
+                  icon: Icons.badge,
+                  title: 'Identidade verificada',
+                  subtitle: 'Documento de identificação validado',
                   verified: true,
                 ),
-              if (user.verifiedAt != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  'Verificado em ${_formatDate(user.verifiedAt!)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                _buildVerificationItem(
+                  icon: Icons.drive_eta,
+                  title: 'Carta de condução',
+                  subtitle: 'Habilitação para conduzir confirmada',
+                  verified: true,
+                ),
+                if (user.verificationLevel == 'full')
+                  _buildVerificationItem(
+                    icon: Icons.home,
+                    title: 'Morada confirmada',
+                    subtitle: 'Comprovativo de residência validado',
+                    verified: true,
+                  ),
+                if (user.verifiedAt != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Verificado em ${_formatDate(user.verifiedAt!)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ],
+
+              // Score de confiança
+              const SizedBox(height: 24),
+              _buildTrustScore(context),
+
+              // Botão de ação
+              if (isCurrentUser &&
+                  !user.hasKYC &&
+                  !user.isPendingVerification) ...[
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.push('/kyc-verification');
+                    },
+                    child: const Text('Verificar Minha Conta'),
                   ),
                 ),
               ],
+
+              const SizedBox(height: 16),
             ],
-
-            // Score de confiança
-            const SizedBox(height: 24),
-            _buildTrustScore(context),
-
-            // Botão de ação
-            if (isCurrentUser &&
-                !user.hasKYC &&
-                !user.isPendingVerification) ...[
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    context.push('/kyc-verification');
-                  },
-                  child: const Text('Verificar Minha Conta'),
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 16),
-          ],
+          ),
         ),
       ),
     );

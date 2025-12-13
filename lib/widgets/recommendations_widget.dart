@@ -42,7 +42,7 @@ class _RecommendationsWidgetState extends State<RecommendationsWidget> {
     try {
       final recommendations =
           await _recommendationService.getPersonalizedRecommendations(
-        authService.currentUser!.uid,
+        authService.currentUser!.id,
         limit: widget.limit,
       );
 
@@ -53,7 +53,7 @@ class _RecommendationsWidgetState extends State<RecommendationsWidget> {
         });
       }
     } catch (e) {
-      print('Erro ao carregar recomendações: $e');
+      // Error logged silently
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -104,23 +104,22 @@ class _RecommendationsWidgetState extends State<RecommendationsWidget> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.auto_awesome,
-                      color: Theme.of(context).primaryColor,
+                Icon(
+                  Icons.auto_awesome,
+                  color: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
                 TextButton(
                   onPressed: () {
@@ -161,7 +160,7 @@ class _RecommendationsWidgetState extends State<RecommendationsWidget> {
 
     // Registar clique
     _recommendationService.logRecommendationClick(
-      authService.currentUser!.uid,
+      authService.currentUser!.id,
       recommendation.vehicle.vehicleId!,
     );
 
@@ -253,28 +252,34 @@ class _RecommendationCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
+                    // ✅ CORRIGIDO: Adicionado Expanded para evitar overflow
                     Row(
                       children: [
                         Icon(Icons.location_on,
                             size: 14, color: Colors.grey[600]),
                         const SizedBox(width: 4),
-                        Text(
-                          vehicle.location['city'] ?? 'Porto',
-                          style:
-                              TextStyle(color: Colors.grey[600], fontSize: 14),
+                        Expanded(
+                          child: Text(
+                            vehicle.location['city'] ?? 'Porto',
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         Text(
                           '€${vehicle.pricePerDay.toStringAsFixed(0)}/dia',
                           style: TextStyle(
                             color: Theme.of(context).primaryColor,
                             fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    // Avaliação
+                    // Avaliação - ✅ CORRIGIDO: Adicionado Flexible
                     Row(
                       children: [
                         ...List.generate(5, (index) {
@@ -287,11 +292,14 @@ class _RecommendationCard extends StatelessWidget {
                           );
                         }),
                         const SizedBox(width: 4),
-                        Text(
-                          vehicle.stats.rating.toStringAsFixed(1),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
+                        Flexible(
+                          child: Text(
+                            vehicle.stats.rating.toStringAsFixed(1),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

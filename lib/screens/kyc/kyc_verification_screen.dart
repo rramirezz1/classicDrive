@@ -6,7 +6,6 @@ import 'dart:io';
 import '../../services/auth_service.dart';
 import '../../services/verification_service.dart';
 
-
 class KYCVerificationScreen extends StatefulWidget {
   const KYCVerificationScreen({super.key});
 
@@ -636,7 +635,7 @@ class _KYCVerificationScreenState extends State<KYCVerificationScreen> {
 
       // Submeter documentos
       await verificationService.submitKYCDocuments(
-        userId: authService.currentUser!.uid,
+        userId: authService.currentUser!.id,
         selfie: _selfieImage!,
         idFront: _idFrontImage!,
         idBack: _idBackImage!,

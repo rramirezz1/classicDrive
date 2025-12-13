@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 
+/// Serviço de autenticação e gestão de utilizadores.
 class AuthService extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
-  User? get currentUser => _auth.currentUser;
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  User? get currentUser => _supabase.auth.currentUser;
+  Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
 
   UserModel? _userData;
   UserModel? get userData => _userData;
 
-  // Construtor
   AuthService() {
-    _auth.authStateChanges().listen((User? user) {
-      if (user != null) {
-        _loadUserData(user.uid);
+    _supabase.auth.onAuthStateChange.listen((AuthState state) {
+      if (state.session?.user != null) {
+        _loadUserData(state.session!.user.id);
       } else {
         _userData = null;
       }
@@ -25,29 +23,31 @@ class AuthService extends ChangeNotifier {
     });
   }
 
-  // Carregar dados do utilizador
+  /// Carrega os dados do utilizador da base de dados.
   Future<void> _loadUserData(String uid) async {
     try {
-      print("=== LOADING USER DATA ===");
-      print("UID: $uid");
+      final data = await _supabase
+          .from('users')
+          .select(
+              'id, email, name, phone, user_type, created_at, is_verified, kyc_status, kyc_submitted_at, kyc_approved_at, kyc_rejected_at, verification_level, verification_documents, trust_score, completed_bookings, cancelled_bookings, average_rating, total_reviews, preferences, favorite_vehicles, blocked_users, is_admin')
+          .eq('id', uid)
+          .single();
 
-      final doc = await _firestore.collection('users').doc(uid).get();
-      print("Document exists: ${doc.exists}");
-
-      if (doc.exists) {
-        print("Document data: ${doc.data()}");
-        _userData = UserModel.fromMap(doc.data()!);
-        notifyListeners();
-      } else {
-        print("ERRO: Documento não existe no Firestore!");
-      }
+      _userData = UserModel.fromJson(data);
+      notifyListeners();
     } catch (e) {
-      print('ERRO ao carregar dados do utilizador: $e');
-      debugPrint('Stack trace: ${StackTrace.current}');
+      debugPrint('Erro ao carregar dados do utilizador: $e');
     }
   }
 
-  // Registar novo utilizador
+  /// Recarrega os dados do utilizador atual.
+  Future<void> reloadUserData() async {
+    if (currentUser != null) {
+      await _loadUserData(currentUser!.id);
+    }
+  }
+
+  /// Regista um novo utilizador com email e password.
   Future<String?> registerWithEmailAndPassword({
     required String email,
     required String password,
@@ -56,48 +56,42 @@ class AuthService extends ChangeNotifier {
     required String userType,
   }) async {
     try {
-      // Criar conta no Firebase Auth
-      final credential = await _auth.createUserWithEmailAndPassword(
+      final AuthResponse response = await _supabase.auth.signUp(
         email: email,
         password: password,
       );
 
-      if (credential.user != null) {
-        print("=== CREATING USER DOCUMENT ===");
-        print("UID: ${credential.user!.uid}");
-        // Criar documento do utilizador no Firestore
-        final userData = UserModel(
-          uid: credential.user!.uid,
-          email: email,
-          name: name,
-          phone: phone,
-          userType: userType,
-          createdAt: DateTime.now(),
-          isVerified: false,
-        );
+      if (response.user != null) {
+        final userData = {
+          'id': response.user!.id,
+          'email': email,
+          'name': name,
+          'phone': phone,
+          'user_type': userType,
+          'created_at': DateTime.now().toIso8601String(),
+          'is_verified': false,
+          'kyc_status': 'none',
+          'trust_score': 0.0,
+          'completed_bookings': 0,
+          'cancelled_bookings': 0,
+          'average_rating': 0.0,
+          'total_reviews': 0,
+          'preferences': {},
+          'favorite_vehicles': [],
+          'blocked_users': [],
+        };
 
-        print("UserData to save: ${userData.toMap()}");
+        await _supabase.from('users').insert(userData);
+        await _loadUserData(response.user!.id);
 
-        await _firestore
-            .collection('users')
-            .doc(credential.user!.uid)
-            .set(userData.toMap());
-
-        print("=== USER DOCUMENT CREATED ===");
-
-        _userData = userData;
-        notifyListeners();
-
-        return null; // Sucesso
+        return null;
       }
-    } on FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'weak-password':
-          return 'A palavra-passe é muito fraca.';
-        case 'email-already-in-use':
+    } on AuthException catch (e) {
+      switch (e.message) {
+        case 'User already registered':
           return 'Este email já está registado.';
-        case 'invalid-email':
-          return 'Email inválido.';
+        case 'Password should be at least 6 characters':
+          return 'A palavra-passe deve ter pelo menos 6 caracteres.';
         default:
           return 'Erro ao registar: ${e.message}';
       }
@@ -107,84 +101,97 @@ class AuthService extends ChangeNotifier {
     return 'Erro ao criar conta';
   }
 
-  // Login com email e password
+  /// Inicia sessão com email e password.
   Future<String?> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-      return null; // Sucesso
-    } on FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'user-not-found':
-          return 'Utilizador não encontrado.';
-        case 'wrong-password':
-          return 'Palavra-passe incorreta.';
-        case 'invalid-email':
-          return 'Email inválido.';
-        case 'user-disabled':
-          return 'Esta conta foi desativada.';
+      final AuthResponse response = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      if (response.user != null) {
+        await _loadUserData(response.user!.id);
+        return null;
+      }
+    } on AuthException catch (e) {
+      switch (e.message) {
+        case 'Invalid login credentials':
+          return 'Email ou palavra-passe incorretos.';
+        case 'Email not confirmed':
+          return 'Por favor, confirme o seu email antes de fazer login.';
         default:
           return 'Erro ao entrar: ${e.message}';
       }
     } catch (e) {
       return 'Erro inesperado: $e';
     }
+    return 'Erro ao entrar';
   }
 
-  // Logout
+  /// Termina a sessão do utilizador atual.
   Future<void> signOut() async {
-    await _auth.signOut();
+    await _supabase.auth.signOut();
     _userData = null;
     notifyListeners();
   }
 
-  // Recuperar password
+  /// Envia email de recuperação de password.
   Future<String?> resetPassword(String email) async {
     try {
-      await _auth.sendPasswordResetEmail(email: email);
-      return null; // Sucesso
-    } on FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'user-not-found':
-          return 'Email não encontrado.';
-        case 'invalid-email':
-          return 'Email inválido.';
-        default:
-          return 'Erro: ${e.message}';
-      }
+      await _supabase.auth.resetPasswordForEmail(email);
+      return null;
+    } on AuthException catch (e) {
+      return 'Erro: ${e.message}';
     } catch (e) {
       return 'Erro inesperado: $e';
     }
   }
 
-  // Atualizar perfil do utilizador
+  /// Atualiza o perfil do utilizador.
   Future<String?> updateUserProfile({
     required Map<String, dynamic> updates,
   }) async {
     try {
       if (currentUser == null) return 'Utilizador não autenticado';
 
-      await _firestore
-          .collection('users')
-          .doc(currentUser!.uid)
-          .update(updates);
+      final processedUpdates = <String, dynamic>{};
 
-      // Recarregar dados do utilizador
-      await _loadUserData(currentUser!.uid);
+      updates.forEach((key, value) {
+        if (value is DateTime) {
+          processedUpdates[key] = value.toIso8601String();
+        } else {
+          processedUpdates[key] = value;
+        }
+      });
 
-      return null; // Sucesso
+      await _supabase
+          .from('users')
+          .update(processedUpdates)
+          .eq('id', currentUser!.id);
+
+      await _loadUserData(currentUser!.id);
+
+      return null;
     } catch (e) {
       return 'Erro ao atualizar perfil: $e';
     }
   }
 
-  
+  /// Verifica se o utilizador é proprietário.
+  bool get isOwner {
+    if (_userData == null) return false;
+    return _userData!.userType == 'owner';
+  }
 
-  // Verificar se é proprietário
-  bool get isOwner => _userData?.userType == 'owner';
+  /// Verifica se o utilizador é cliente.
+  bool get isRenter {
+    if (_userData == null) return false;
+    return _userData!.userType == 'renter';
+  }
 
-  // Verificar se é cliente
-  bool get isRenter => _userData?.userType == 'renter';
+  /// Obtém o ID do utilizador atual.
+  String? get currentUserId => currentUser?.id;
 }
