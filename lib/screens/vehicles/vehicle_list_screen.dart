@@ -486,9 +486,10 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
 
   Widget _buildErrorState(String error, bool isDark) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(40),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
@@ -530,9 +531,10 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
 
   Widget _buildEmptyState(AuthService authService, bool isDark) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(40),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
@@ -581,9 +583,10 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
 
   Widget _buildNoResultsState(bool isDark) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(40),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
