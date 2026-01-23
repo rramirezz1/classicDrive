@@ -115,12 +115,18 @@ class ConversationModel {
     return participant1Id;
   }
 
-  /// Obtém o ID do outro participante.
-  String getOtherParticipantId(String currentUserId) {
+  /// Obtém o nome do outro participante.
+  String getOtherParticipantName(String currentUserId) {
     if (participant1Id == currentUserId) {
-      return participant2Id;
+      return participant2Name ?? 'Utilizador';
     }
-    return participant1Id;
+    return participant1Name ?? 'Utilizador';
+  }
+
+  /// Obtém o avatar do outro participante.
+  String? getOtherParticipantAvatar(String currentUserId) {
+    // Retorna null pois as colunas de avatar foram removidas da tabela
+    return null;
   }
 
   factory ConversationModel.fromMap(Map<String, dynamic> map) {
