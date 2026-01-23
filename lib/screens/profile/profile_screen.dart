@@ -855,10 +855,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _showLogoutDialog(AuthService authService) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final rootContext = context; // Capturar contexto antes do dialog
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: AppRadius.borderRadiusLg),
         title: Row(
           children: [
@@ -881,15 +882,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         content: const Text('Tem a certeza que deseja sair?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext); // Fechar dialog primeiro
               await authService.signOut();
-              if (context.mounted) {
-                context.go('/login');
+              // Usar o rootContext para navegação
+              if (rootContext.mounted) {
+                GoRouter.of(rootContext).go('/login');
               }
             },
             style: ElevatedButton.styleFrom(

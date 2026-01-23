@@ -30,5 +30,9 @@
   "luxury": "Luxo",
   "insuranceDialogTitle": "Meus Seguros",
   "featureInDevelopment": "Funcionalidade em desenvolvimento",
-  "ok": "OK"
+  "ok": "OK",
+  "navHome": "Início",
+  "navVehicles": "Veículos",
+  "navBookings": "Reservas",
+  "navProfile": "Perfil"
 }

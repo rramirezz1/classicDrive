@@ -118,8 +118,8 @@ class MyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: const [
-              Locale('pt'),
               Locale('en'),
+              Locale('pt'),
             ],
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
@@ -351,26 +351,26 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
             _selectedIndex = index;
           });
         },
-        items: const [
+        items: [
           ModernNavItem(
             icon: Icons.home_outlined,
             selectedIcon: Icons.home_rounded,
-            label: 'Início',
+            label: AppLocalizations.of(context)?.navHome ?? 'Home',
           ),
           ModernNavItem(
             icon: Icons.directions_car_outlined,
             selectedIcon: Icons.directions_car_rounded,
-            label: 'Veículos',
+            label: AppLocalizations.of(context)?.navVehicles ?? 'Vehicles',
           ),
           ModernNavItem(
             icon: Icons.calendar_today_outlined,
             selectedIcon: Icons.calendar_today_rounded,
-            label: 'Reservas',
+            label: AppLocalizations.of(context)?.navBookings ?? 'Bookings',
           ),
           ModernNavItem(
             icon: Icons.person_outline_rounded,
             selectedIcon: Icons.person_rounded,
-            label: 'Perfil',
+            label: AppLocalizations.of(context)?.navProfile ?? 'Profile',
           ),
         ],
       ),
