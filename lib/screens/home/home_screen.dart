@@ -16,6 +16,7 @@ import '../../widgets/modern_card.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_shadows.dart';
 import '../../main.dart' show mainNavigationKey;
+import '../notifications/notifications_screen.dart' show NotificationState;
 import 'package:classic_drive/l10n/app_localizations.dart';
 
 /// Ecrã principal HomeScreen com design moderno.
@@ -68,10 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Trust Score Card (se verificado)
-                  if (user != null && user.hasKYC)
-                    _buildTrustScoreCard(user, isDark),
-
                   // Recomendações personalizadas (para arrendatários)
                   if (!isOwner && authService.currentUser != null) ...[
                     const SizedBox(height: 24),
@@ -155,20 +152,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: const Icon(Icons.notifications_rounded, color: Colors.white, size: 20),
                 ),
-                // Badge (indicador de notificações não lidas)
-                Positioned(
-                  right: 2,
-                  top: 2,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: AppColors.error,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
+                // Badge só aparece se houver notificações não lidas
+                if (NotificationState.unreadCount > 0)
+                  Positioned(
+                    right: 2,
+                    top: 2,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             tooltip: 'Notificações',

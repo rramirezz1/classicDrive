@@ -7,6 +7,11 @@ class LoyaltyService {
 
   /// Obtém os dados de fidelidade do utilizador.
   Future<LoyaltyModel?> getUserLoyalty(String oderId) async {
+    // Validar userId antes de fazer query
+    if (oderId.isEmpty) {
+      return null;
+    }
+    
     try {
       final response = await _supabase
           .from('user_loyalty')

@@ -27,6 +27,41 @@ class AppNotification {
 
 enum NotificationType { booking, message, promo, system }
 
+/// Classe pública para gerir estado das notificações globalmente.
+class NotificationState {
+  static List<AppNotification> notifications = [];
+  
+  static int get unreadCount => notifications.where((n) => !n.isRead).length;
+  
+  static void markAsRead(String id) {
+    final index = notifications.indexWhere((n) => n.id == id);
+    if (index != -1) {
+      final notification = notifications[index];
+      notifications[index] = AppNotification(
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        timestamp: notification.timestamp,
+        type: notification.type,
+        isRead: true,
+        actionRoute: notification.actionRoute,
+      );
+    }
+  }
+  
+  static void markAllAsRead() {
+    notifications = notifications.map((n) => AppNotification(
+      id: n.id,
+      title: n.title,
+      message: n.message,
+      timestamp: n.timestamp,
+      type: n.type,
+      isRead: true,
+      actionRoute: n.actionRoute,
+    )).toList();
+  }
+}
+
 /// Ecrã de notificações in-app.
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -36,8 +71,6 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  // Lista estática para persistir entre navegações
-  static List<AppNotification> _notifications = [];
   bool _isLoading = true;
 
   @override
@@ -52,9 +85,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     // Simular carregamento - só carregar dados se lista estiver vazia
     await Future.delayed(const Duration(milliseconds: 300));
 
-    if (_notifications.isEmpty) {
+    if (NotificationState.notifications.isEmpty) {
       // Dados de exemplo - só carrega uma vez
-      _notifications = [
+      NotificationState.notifications = [
         AppNotification(
           id: '1',
           title: 'Reserva Confirmada',
@@ -86,33 +119,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   void _markAsRead(String id) {
     setState(() {
-      final index = _notifications.indexWhere((n) => n.id == id);
-      if (index != -1) {
-        final notification = _notifications[index];
-        _notifications[index] = AppNotification(
-          id: notification.id,
-          title: notification.title,
-          message: notification.message,
-          timestamp: notification.timestamp,
-          type: notification.type,
-          isRead: true,
-          actionRoute: notification.actionRoute,
-        );
-      }
+      NotificationState.markAsRead(id);
     });
   }
 
   void _markAllAsRead() {
     setState(() {
-      _notifications = _notifications.map((n) => AppNotification(
-        id: n.id,
-        title: n.title,
-        message: n.message,
-        timestamp: n.timestamp,
-        type: n.type,
-        isRead: true,
-        actionRoute: n.actionRoute,
-      )).toList();
+      NotificationState.markAllAsRead();
     });
     
     ScaffoldMessenger.of(context).showSnackBar(
@@ -125,7 +138,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  int get unreadCount => _notifications.where((n) => !n.isRead).length;
+  int get unreadCount => NotificationState.unreadCount;
+  List<AppNotification> get _notifications => NotificationState.notifications;
 
   @override
   Widget build(BuildContext context) {
