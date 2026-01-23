@@ -36,7 +36,8 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  List<AppNotification> _notifications = [];
+  // Lista estática para persistir entre navegações
+  static List<AppNotification> _notifications = [];
   bool _isLoading = true;
 
   @override
@@ -48,35 +49,37 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
 
-    // Simular carregamento de notificações
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Simular carregamento - só carregar dados se lista estiver vazia
+    await Future.delayed(const Duration(milliseconds: 300));
 
-    // Dados de exemplo
-    _notifications = [
-      AppNotification(
-        id: '1',
-        title: 'Reserva Confirmada',
-        message: 'A sua reserva do Mercedes-Benz 300SL foi confirmada pelo proprietário.',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        type: NotificationType.booking,
-        actionRoute: '/bookings',
-      ),
-      AppNotification(
-        id: '2',
-        title: 'Nova Avaliação',
-        message: 'Um cliente deixou uma avaliação no seu veículo.',
-        timestamp: DateTime.now().subtract(const Duration(days: 1)),
-        type: NotificationType.message,
-      ),
-      AppNotification(
-        id: '3',
-        title: 'Promoção Especial',
-        message: 'Aproveite 15% de desconto em reservas este fim de semana!',
-        timestamp: DateTime.now().subtract(const Duration(days: 3)),
-        type: NotificationType.promo,
-        isRead: true,
-      ),
-    ];
+    if (_notifications.isEmpty) {
+      // Dados de exemplo - só carrega uma vez
+      _notifications = [
+        AppNotification(
+          id: '1',
+          title: 'Reserva Confirmada',
+          message: 'A sua reserva do Mercedes-Benz 300SL foi confirmada pelo proprietário.',
+          timestamp: DateTime.now().subtract(const Duration(hours: 2)),
+          type: NotificationType.booking,
+          actionRoute: '/bookings',
+        ),
+        AppNotification(
+          id: '2',
+          title: 'Nova Avaliação',
+          message: 'Um cliente deixou uma avaliação no seu veículo.',
+          timestamp: DateTime.now().subtract(const Duration(days: 1)),
+          type: NotificationType.message,
+        ),
+        AppNotification(
+          id: '3',
+          title: 'Promoção Especial',
+          message: 'Aproveite 15% de desconto em reservas este fim de semana!',
+          timestamp: DateTime.now().subtract(const Duration(days: 3)),
+          type: NotificationType.promo,
+          isRead: true,
+        ),
+      ];
+    }
 
     if (mounted) setState(() => _isLoading = false);
   }

@@ -70,7 +70,7 @@ class AuthService extends ChangeNotifier {
           'user_type': userType,
           'created_at': DateTime.now().toIso8601String(),
           'is_verified': false,
-          'kyc_status': 'none',
+          'kyc_status': 'not_submitted',
           'trust_score': 0.0,
           'completed_bookings': 0,
           'cancelled_bookings': 0,

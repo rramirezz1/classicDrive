@@ -286,7 +286,9 @@ final GoRouter _router = GoRouter(
     final authService = Provider.of<AuthService>(context, listen: false);
     final isLoggedIn = authService.currentUser != null;
     final isAuthRoute = state.matchedLocation == '/login' ||
-        state.matchedLocation == '/register';
+        state.matchedLocation == '/register' ||
+        state.matchedLocation == '/splash' ||
+        state.matchedLocation == '/onboarding';
 
     if (!isLoggedIn && !isAuthRoute) {
       return '/login';

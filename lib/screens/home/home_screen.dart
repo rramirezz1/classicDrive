@@ -384,77 +384,86 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildTrustScoreCard(dynamic user, bool isDark) {
     return Container(
       margin: const EdgeInsets.only(top: 20),
-      child: GradientCard(
-        gradient: const LinearGradient(
-          colors: [AppColors.success, AppColors.successDark],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.whiteOpacity20,
-                borderRadius: AppRadius.borderRadiusMd,
+      child: GestureDetector(
+        onTap: () => context.push('/kyc-verification'),
+        child: GradientCard(
+          gradient: const LinearGradient(
+            colors: [AppColors.success, AppColors.successDark],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.whiteOpacity20,
+                  borderRadius: AppRadius.borderRadiusMd,
+                ),
+                child: const Icon(
+                  Icons.verified_user_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
-              child: const Icon(
-                Icons.verified_user_rounded,
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.accountVerified,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    AppLocalizations.of(context)!.trustScore(user.trustLevel),
-                    style: TextStyle(
-                      color: AppColors.whiteOpacity85,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Trust meter circular
-            SizedBox(
-              width: 56,
-              height: 56,
-              child: Stack(
-                children: [
-                  CircularProgressIndicator(
-                    value: user.reliabilityScore,
-                    backgroundColor: AppColors.whiteOpacity20,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                    strokeWidth: 5,
-                  ),
-                  Center(
-                    child: Text(
-                      '${(user.reliabilityScore * 100).toInt()}%',
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.accountVerified,
                       style: const TextStyle(
                         color: Colors.white,
+                        fontSize: 17,
                         fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      AppLocalizations.of(context)!.trustScore(user.trustLevel),
+                      style: TextStyle(
+                        color: AppColors.whiteOpacity85,
                         fontSize: 13,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              // Trust meter circular
+              SizedBox(
+                width: 56,
+                height: 56,
+                child: Stack(
+                  children: [
+                    CircularProgressIndicator(
+                      value: user.reliabilityScore,
+                      backgroundColor: AppColors.whiteOpacity20,
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                      strokeWidth: 5,
+                    ),
+                    Center(
+                      child: Text(
+                        '${(user.reliabilityScore * 100).toInt()}%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ],
+          ),
         ),
       ),
     );
