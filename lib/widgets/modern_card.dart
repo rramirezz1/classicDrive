@@ -257,30 +257,34 @@ class ActionCard extends StatelessWidget {
       onTap: onTap,
       child: Stack(
         children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: AppRadius.borderRadiusMd,
                   ),
-                  borderRadius: AppRadius.borderRadiusMd,
+                  child: Icon(icon, size: 28, color: color),
                 ),
-                child: Icon(icon, size: 28, color: color),
-              ),
-              AppSpacing.verticalGapSm,
-              Text(
-                title,
-                style: theme.textTheme.labelLarge,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+                AppSpacing.verticalGapSm,
+                Text(
+                  title,
+                  style: theme.textTheme.labelLarge,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
           if (badge != null)
             Positioned(

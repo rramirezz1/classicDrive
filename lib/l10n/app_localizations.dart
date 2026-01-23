@@ -167,7 +167,7 @@ abstract class AppLocalizations {
   /// No description provided for @recommendedForYou.
   ///
   /// In en, this message translates to:
-  /// **'🎯 Recommended for You'**
+  /// **'Recommended for You'**
   String get recommendedForYou;
 
   /// No description provided for @myStats.

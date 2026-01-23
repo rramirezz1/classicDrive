@@ -306,26 +306,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         letterSpacing: -0.5,
                       ),
                     ),
-                    // Banner de verificação pendente
+                    // Banner de verificação pendente (só mostra se estiver pendente)
                     if (_verificationStatus != null &&
                         _verificationStatus!.isPending)
                       _buildVerificationBanner(
                         icon: Icons.access_time_rounded,
                         text: AppLocalizations.of(context)!.verificationPending,
                         color: AppColors.warning,
-                      ),
-                    // Prompt de verificação
-                    if (user != null &&
-                        !user.hasKYC &&
-                        _verificationStatus?.isPending != true)
-                      GestureDetector(
-                        onTap: () => context.push('/kyc-verification'),
-                        child: _buildVerificationBanner(
-                          icon: Icons.verified_user_rounded,
-                          text: AppLocalizations.of(context)!.verifyAccount,
-                          color: Colors.white,
-                          isOutlined: true,
-                        ),
                       ),
                   ],
                 ),

@@ -82,8 +82,6 @@ class ConversationModel {
   final String participant2Id;
   final String? participant1Name;
   final String? participant2Name;
-  final String? participant1Avatar;
-  final String? participant2Avatar;
   final String? vehicleId;
   final String? vehicleName;
   final String? bookingId;
@@ -99,8 +97,6 @@ class ConversationModel {
     required this.participant2Id,
     this.participant1Name,
     this.participant2Name,
-    this.participant1Avatar,
-    this.participant2Avatar,
     this.vehicleId,
     this.vehicleName,
     this.bookingId,
@@ -111,20 +107,12 @@ class ConversationModel {
     required this.createdAt,
   });
 
-  /// Obtém o nome do outro participante.
-  String getOtherParticipantName(String currentUserId) {
+  /// Obtém o ID do outro participante.
+  String getOtherParticipantId(String currentUserId) {
     if (participant1Id == currentUserId) {
-      return participant2Name ?? 'Utilizador';
+      return participant2Id;
     }
-    return participant1Name ?? 'Utilizador';
-  }
-
-  /// Obtém o avatar do outro participante.
-  String? getOtherParticipantAvatar(String currentUserId) {
-    if (participant1Id == currentUserId) {
-      return participant2Avatar;
-    }
-    return participant1Avatar;
+    return participant1Id;
   }
 
   /// Obtém o ID do outro participante.
@@ -142,8 +130,6 @@ class ConversationModel {
       participant2Id: map['participant_2_id'] ?? '',
       participant1Name: map['participant_1_name'],
       participant2Name: map['participant_2_name'],
-      participant1Avatar: map['participant_1_avatar'],
-      participant2Avatar: map['participant_2_avatar'],
       vehicleId: map['vehicle_id'],
       vehicleName: map['vehicle_name'],
       bookingId: map['booking_id'],
@@ -165,8 +151,6 @@ class ConversationModel {
       'participant_2_id': participant2Id,
       'participant_1_name': participant1Name,
       'participant_2_name': participant2Name,
-      'participant_1_avatar': participant1Avatar,
-      'participant_2_avatar': participant2Avatar,
       'vehicle_id': vehicleId,
       'vehicle_name': vehicleName,
       'booking_id': bookingId,

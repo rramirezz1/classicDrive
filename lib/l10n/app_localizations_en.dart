@@ -44,7 +44,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recommendedForYou => '🎯 Recommended for You';
+  String get recommendedForYou => 'Recommended for You';
 
   @override
   String get myStats => 'My Stats';
