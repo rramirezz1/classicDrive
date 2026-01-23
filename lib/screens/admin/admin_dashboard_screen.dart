@@ -88,7 +88,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: AppColors.whiteOpacity20,
                                 borderRadius: AppRadius.borderRadiusMd,
                               ),
                               child: const Icon(
@@ -127,7 +127,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: AppColors.whiteOpacity20,
                             borderRadius: AppRadius.borderRadiusFull,
                           ),
                           child: const Row(
@@ -226,7 +226,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.errorOpacity10,
                 borderRadius: AppRadius.borderRadiusSm,
               ),
               child: const Icon(Icons.logout_rounded,

@@ -38,7 +38,7 @@ class ModernErrorWidget extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.1),
+                  color: AppColors.errorOpacity10,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -135,7 +135,7 @@ class ModernEmptyWidget extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.info.withOpacity(0.1),
+                  color: AppColors.infoOpacity10,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

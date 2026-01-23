@@ -174,7 +174,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
         borderRadius: AppRadius.borderRadiusLg,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primaryOpacity30,
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -188,7 +188,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: AppColors.whiteOpacity20,
                   borderRadius: AppRadius.borderRadiusMd,
                 ),
                 child: const Icon(
@@ -220,7 +220,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: AppColors.whiteOpacity20,
               borderRadius: AppRadius.borderRadiusFull,
             ),
             child: Row(
@@ -422,8 +422,8 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: vehicle.isAvailable
-                    ? AppColors.success.withOpacity(0.1)
-                    : AppColors.error.withOpacity(0.1),
+                    ? AppColors.successOpacity10
+                    : AppColors.errorOpacity10,
                 borderRadius: AppRadius.borderRadiusFull,
               ),
               child: Text(

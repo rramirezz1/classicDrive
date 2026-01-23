@@ -221,7 +221,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: AppColors.whiteOpacity15,
                 borderRadius: AppRadius.borderRadiusMd,
               ),
               child: const Icon(
@@ -251,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   height: 200,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.08),
+                    color: AppColors.whiteOpacity08,
                   ),
                 ),
               ),
@@ -263,7 +263,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   height: 150,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
+                    color: AppColors.whiteOpacity05,
                   ),
                 ),
               ),
@@ -282,17 +282,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
                           colors: [
-                            Colors.white.withOpacity(0.2),
-                            Colors.white.withOpacity(0.1),
+                            AppColors.whiteOpacity20,
+                            AppColors.whiteOpacity10,
                           ],
                         ),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
+                          color: AppColors.whiteOpacity20,
                           width: 3,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
+                            color: AppColors.blackOpacity20,
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -330,10 +330,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                        color: AppColors.whiteOpacity15,
                         borderRadius: AppRadius.borderRadiusFull,
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: AppColors.whiteOpacity20,
                         ),
                       ),
                       child: Row(
@@ -455,7 +455,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primaryOpacity10,
                     borderRadius: AppRadius.borderRadiusSm,
                   ),
                   child: const Icon(
@@ -638,7 +638,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primaryOpacity10,
             borderRadius: AppRadius.borderRadiusSm,
           ),
           child: Icon(icon, color: AppColors.primary, size: 18),
@@ -865,7 +865,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.errorOpacity10,
                 borderRadius: AppRadius.borderRadiusSm,
               ),
               child: const Icon(

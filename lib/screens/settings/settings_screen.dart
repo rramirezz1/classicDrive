@@ -544,7 +544,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
+          color: AppColors.primaryOpacity10,
           borderRadius: AppRadius.borderRadiusSm,
         ),
         child: Icon(icon, color: AppColors.primary, size: 20),
@@ -632,7 +632,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withOpacity(0.1)
+              ? AppColors.primaryOpacity10
               : Colors.transparent,
           borderRadius: AppRadius.borderRadiusMd,
           border: Border.all(

@@ -124,7 +124,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: _showFilters
-                              ? AppColors.primary.withOpacity(0.15)
+                              ? AppColors.primaryOpacity15
                               : (isDark
                                   ? AppColors.darkCardHover
                                   : AppColors.lightCardHover),
@@ -194,6 +194,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     itemCount: _filteredVehicles.length,
                     itemBuilder: (context, index) {
                       return TweenAnimationBuilder<double>(
+                        key: ValueKey('search_anim_${_filteredVehicles[index].vehicleId}'),
                         tween: Tween(begin: 0.0, end: 1.0),
                         duration:
                             Duration(milliseconds: 200 + (index * 30).clamp(0, 200)),
@@ -245,7 +246,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primaryOpacity10,
                   borderRadius: AppRadius.borderRadiusFull,
                 ),
                 child: Text(
@@ -262,9 +263,9 @@ class _SearchScreenState extends State<SearchScreen> {
           SliderTheme(
             data: SliderThemeData(
               activeTrackColor: AppColors.primary,
-              inactiveTrackColor: AppColors.primary.withOpacity(0.2),
+              inactiveTrackColor: AppColors.primaryOpacity20,
               thumbColor: AppColors.primary,
-              overlayColor: AppColors.primary.withOpacity(0.1),
+              overlayColor: AppColors.primaryOpacity10,
             ),
             child: RangeSlider(
               values: _priceRange,
@@ -353,7 +354,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.primary.withOpacity(0.15)
+                      ? AppColors.primaryOpacity15
                       : (isDark
                           ? AppColors.darkCardHover
                           : AppColors.lightCardHover),
@@ -395,7 +396,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primaryOpacity10,
               shape: BoxShape.circle,
             ),
             child: Icon(

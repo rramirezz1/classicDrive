@@ -129,7 +129,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         borderRadius: AppRadius.borderRadiusLg,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primaryOpacity30,
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -181,7 +181,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
+          color: AppColors.whiteOpacity20,
           borderRadius: AppRadius.borderRadiusMd,
         ),
         child: Column(
@@ -224,7 +224,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: AppColors.primaryOpacity10,
                           borderRadius: AppRadius.borderRadiusSm,
                         ),
                         child: Icon(
@@ -315,7 +315,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.1),
+                    color: AppColors.accentOpacity10,
                     borderRadius: AppRadius.borderRadiusMd,
                   ),
                   child: Icon(
@@ -453,7 +453,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.info.withOpacity(0.1),
+                  color: AppColors.infoOpacity10,
                   borderRadius: AppRadius.borderRadiusMd,
                 ),
                 child: Icon(Icons.link_rounded, color: AppColors.info, size: 22),

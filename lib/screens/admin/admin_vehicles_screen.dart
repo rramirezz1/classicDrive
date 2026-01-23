@@ -312,7 +312,7 @@ class _AdminVehiclesScreenState extends State<AdminVehiclesScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.1),
+              color: AppColors.infoOpacity10,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -435,7 +435,7 @@ class _VehicleCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.1),
+                        color: AppColors.errorOpacity10,
                         borderRadius: AppRadius.borderRadiusSm,
                         border: Border.all(color: AppColors.error),
                       ),
@@ -716,7 +716,7 @@ class _VehicleCard extends StatelessWidget {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primaryOpacity10,
                 borderRadius: AppRadius.borderRadiusFull,
               ),
               child: Text(

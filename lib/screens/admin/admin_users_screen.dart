@@ -554,7 +554,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.1),
+              color: AppColors.infoOpacity10,
               shape: BoxShape.circle,
             ),
             child: Icon(

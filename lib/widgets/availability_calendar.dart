@@ -195,10 +195,10 @@ class _AvailabilityCalendarState extends State<AvailabilityCalendar> {
     Color textColor;
 
     if (isBooked) {
-      backgroundColor = AppColors.warning.withOpacity(0.15);
+      backgroundColor = AppColors.warningOpacity15;
       textColor = AppColors.warning;
     } else if (isBlocked) {
-      backgroundColor = AppColors.error.withOpacity(0.15);
+      backgroundColor = AppColors.errorOpacity15;
       textColor = AppColors.error;
     } else if (isToday) {
       backgroundColor = AppColors.primary;
@@ -227,9 +227,9 @@ class _AvailabilityCalendarState extends State<AvailabilityCalendar> {
               ? null
               : Border.all(
                   color: isBlocked
-                      ? AppColors.error.withOpacity(0.3)
+                      ? AppColors.errorOpacity30
                       : isBooked
-                          ? AppColors.warning.withOpacity(0.3)
+                          ? AppColors.warningOpacity30
                           : Colors.transparent,
                   width: 1.5,
                 ),
@@ -254,9 +254,9 @@ class _AvailabilityCalendarState extends State<AvailabilityCalendar> {
       children: [
         _buildLegendItem(isDark, 'Disponível', Colors.grey[200]!),
         const SizedBox(width: 16),
-        _buildLegendItem(isDark, 'Reservado', AppColors.warning.withOpacity(0.3)),
+        _buildLegendItem(isDark, 'Reservado', AppColors.warningOpacity30),
         const SizedBox(width: 16),
-        _buildLegendItem(isDark, 'Bloqueado', AppColors.error.withOpacity(0.3)),
+        _buildLegendItem(isDark, 'Bloqueado', AppColors.errorOpacity30),
       ],
     );
   }

@@ -3,6 +3,31 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// Resultado de um pagamento.
+class PaymentResult {
+  final bool success;
+  final String? paymentIntentId;
+  final String? errorMessage;
+
+  PaymentResult({
+    required this.success,
+    this.paymentIntentId,
+    this.errorMessage,
+  });
+
+  factory PaymentResult.success(String paymentIntentId) {
+    return PaymentResult(success: true, paymentIntentId: paymentIntentId);
+  }
+
+  factory PaymentResult.failure(String error) {
+    return PaymentResult(success: false, errorMessage: error);
+  }
+
+  factory PaymentResult.cancelled() {
+    return PaymentResult(success: false, errorMessage: 'Pagamento cancelado');
+  }
+}
+
 /// Serviço de pagamentos com Stripe.
 class PaymentService {
   static final PaymentService _instance = PaymentService._internal();
@@ -24,26 +49,30 @@ class PaymentService {
     }
   }
 
-  /// Processa um pagamento.
-  Future<bool> processPayment({
+  /// Processa um pagamento e retorna o resultado com payment_intent_id.
+  Future<PaymentResult> processPaymentWithIntent({
     required double amount,
     required String currency,
     required BuildContext context,
   }) async {
     if (mockMode) {
-      return await _processMockPayment(context, amount, currency);
+      return await _processMockPaymentWithIntent(context, amount, currency);
     }
 
     try {
       final paymentIntentData = await _createPaymentIntent(amount, currency);
       
       if (paymentIntentData == null) {
-        throw Exception('Falha ao criar PaymentIntent');
+        return PaymentResult.failure('Falha ao criar PaymentIntent');
       }
+
+      final clientSecret = paymentIntentData['clientSecret'] as String;
+      // Extrair o payment_intent_id do client_secret (formato: pi_xxx_secret_yyy)
+      final paymentIntentId = clientSecret.split('_secret_').first;
 
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: paymentIntentData['clientSecret'],
+          paymentIntentClientSecret: clientSecret,
           merchantDisplayName: 'Classic Drive',
           style: ThemeMode.system,
         ),
@@ -51,7 +80,7 @@ class PaymentService {
 
       await Stripe.instance.presentPaymentSheet();
 
-      return true;
+      return PaymentResult.success(paymentIntentId);
     } on StripeException catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -61,7 +90,7 @@ class PaymentService {
           ),
         );
       }
-      return false;
+      return PaymentResult.failure(e.error.localizedMessage ?? 'Erro no pagamento');
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -71,12 +100,26 @@ class PaymentService {
           ),
         );
       }
-      return false;
+      return PaymentResult.failure(e.toString());
     }
   }
 
-  /// Simula um pagamento para testes.
-  Future<bool> _processMockPayment(
+  /// Processa um pagamento (versão simplificada para compatibilidade).
+  Future<bool> processPayment({
+    required double amount,
+    required String currency,
+    required BuildContext context,
+  }) async {
+    final result = await processPaymentWithIntent(
+      amount: amount,
+      currency: currency,
+      context: context,
+    );
+    return result.success;
+  }
+
+  /// Simula um pagamento para testes (retorna PaymentResult).
+  Future<PaymentResult> _processMockPaymentWithIntent(
       BuildContext context, double amount, String currency) async {
     showDialog(
       context: context,
@@ -88,7 +131,10 @@ class PaymentService {
 
     if (context.mounted) Navigator.pop(context);
 
-    if (!context.mounted) return false;
+    if (!context.mounted) return PaymentResult.cancelled();
+    
+    // Gerar um mock payment_intent_id
+    final mockPaymentIntentId = 'pi_mock_${DateTime.now().millisecondsSinceEpoch}';
     
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -97,7 +143,7 @@ class PaymentService {
       ),
     );
     
-    return true;
+    return PaymentResult.success(mockPaymentIntentId);
   }
 
   /// Cria um PaymentIntent através da Edge Function.

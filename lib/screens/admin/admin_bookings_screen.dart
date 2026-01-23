@@ -250,12 +250,12 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.success.withOpacity(0.15),
-                  AppColors.success.withOpacity(0.05),
+                  AppColors.successOpacity15,
+                  AppColors.successOpacity10,
                 ],
               ),
               borderRadius: AppRadius.borderRadiusMd,
-              border: Border.all(color: AppColors.success.withOpacity(0.3)),
+              border: Border.all(color: AppColors.successOpacity30),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -320,7 +320,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.1),
+              color: AppColors.infoOpacity10,
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.event_busy_rounded, size: 48, color: AppColors.info),
@@ -521,7 +521,7 @@ class _BookingCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.info.withOpacity(0.1),
+                          color: AppColors.infoOpacity10,
                           borderRadius: AppRadius.borderRadiusSm,
                         ),
                         child: Text(
@@ -761,7 +761,7 @@ class _BookingCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.errorOpacity10,
                 borderRadius: AppRadius.borderRadiusSm,
               ),
               child: const Icon(Icons.cancel_rounded,

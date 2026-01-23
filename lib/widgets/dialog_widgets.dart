@@ -55,7 +55,7 @@ class SuccessDialog extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.1),
+                  color: AppColors.successOpacity10,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -155,7 +155,7 @@ class ErrorDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.errorOpacity10,
                 shape: BoxShape.circle,
               ),
               child: Icon(

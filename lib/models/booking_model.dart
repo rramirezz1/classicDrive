@@ -11,6 +11,7 @@ class BookingModel {
   final String status;
   final PaymentInfo payment;
   final String? specialRequests;
+  final String? paymentIntentId;  // Para reconciliação com Stripe webhook
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -26,6 +27,7 @@ class BookingModel {
     required this.status,
     required this.payment,
     this.specialRequests,
+    this.paymentIntentId,
     required this.createdAt,
     this.updatedAt,
   });
@@ -44,6 +46,7 @@ class BookingModel {
       status: map['status'] ?? 'pending',
       payment: PaymentInfo.fromMap(map['payment'] ?? {}),
       specialRequests: map['special_requests'],
+      paymentIntentId: map['payment_intent_id'],
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'])
           : DateTime.now(),
@@ -66,6 +69,7 @@ class BookingModel {
       'status': status,
       'payment': payment.toMap(),
       'special_requests': specialRequests,
+      'payment_intent_id': paymentIntentId,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };

@@ -60,7 +60,7 @@ class _AdminKYCScreenState extends State<AdminKYCScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.successOpacity10,
                 borderRadius: AppRadius.borderRadiusSm,
               ),
               child: const Icon(Icons.verified_user_rounded,
@@ -119,7 +119,7 @@ class _AdminKYCScreenState extends State<AdminKYCScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.errorOpacity10,
                 borderRadius: AppRadius.borderRadiusSm,
               ),
               child: const Icon(Icons.cancel_rounded,
@@ -353,7 +353,7 @@ class _AdminKYCScreenState extends State<AdminKYCScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.1),
+              color: AppColors.successOpacity10,
               shape: BoxShape.circle,
             ),
             child: Icon(

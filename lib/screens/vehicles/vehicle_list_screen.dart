@@ -65,16 +65,13 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       appBar: _buildAppBar(context, isOwner, isDark),
       body: Stack(
         children: [
-          CustomScrollView(
-            slivers: [
-              // Barra de pesquisa e filtros
-              SliverToBoxAdapter(
-                child: _buildSearchAndFilters(context, isDark),
-              ),
+          Column(
+            children: [
+              // Barra de pesquisa e filtros (fixa no topo)
+              _buildSearchAndFilters(context, isDark),
 
-              // Lista de veículos
-              SliverFillRemaining(
-                hasScrollBody: true,
+              // Lista de veículos (scrollável)
+              Expanded(
                 child: _buildVehicleList(isDark),
               ),
             ],
@@ -111,7 +108,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.1),
+                  color: AppColors.successOpacity10,
                   borderRadius: AppRadius.borderRadiusMd,
                 ),
                 child: const Icon(
@@ -286,7 +283,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
             max: 1000,
             divisions: 20,
             activeColor: AppColors.primary,
-            inactiveColor: AppColors.primary.withOpacity(0.2),
+            inactiveColor: AppColors.primaryOpacity20,
             labels: RangeLabels(
               '€${_minPrice.toInt()}',
               '€${_maxPrice.toInt()}',
@@ -497,7 +494,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.errorOpacity10,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -541,7 +538,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primaryOpacity10,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -592,7 +589,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
+                color: AppColors.warningOpacity10,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -686,6 +683,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
         vehicle.ownerId == authService.currentUser?.id;
 
     return TweenAnimationBuilder<double>(
+      key: ValueKey('vehicle_anim_${vehicle.vehicleId}'),
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 300 + (index * 50)),
       curve: Curves.easeOutCubic,
@@ -789,7 +787,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
             colors: [
-              Colors.black.withOpacity(0.6),
+              AppColors.blackOpacity60,
               Colors.transparent,
             ],
           ),
@@ -826,7 +824,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       left: 12,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.4),
+          color: AppColors.blackOpacity40,
           borderRadius: AppRadius.borderRadiusMd,
         ),
         child: IconButton(
@@ -854,8 +852,8 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
           return Container(
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppColors.success.withOpacity(0.9)
-                  : Colors.black.withOpacity(0.4),
+                  ? AppColors.successOpacity90
+                  : AppColors.blackOpacity40,
               borderRadius: AppRadius.borderRadiusMd,
             ),
             child: IconButton(
@@ -1046,7 +1044,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.errorOpacity10,
                 borderRadius: AppRadius.borderRadiusSm,
               ),
               child: const Icon(

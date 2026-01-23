@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import '../theme/app_colors.dart';
 
 class LoadingWidgets {
   // Shimmer para card de veículo
@@ -242,7 +243,7 @@ class LoadingWidgets {
   // Loading customizado para formulários
   static Widget formLoading({String? message}) {
     return Container(
-      color: Colors.black.withOpacity(0.5),
+      color: AppColors.blackOpacity40,
       child: Center(
         child: Container(
           padding: const EdgeInsets.all(24),

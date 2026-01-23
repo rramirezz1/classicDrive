@@ -229,7 +229,7 @@ class Toast {
                 borderRadius: AppRadius.borderRadiusMd,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: AppColors.blackOpacity20,
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -404,7 +404,7 @@ class _SuccessAnimationState extends State<SuccessAnimation>
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.success.withOpacity(0.4),
+                  color: AppColors.successOpacity40,
                   blurRadius: 20,
                   spreadRadius: 5,
                 ),

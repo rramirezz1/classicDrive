@@ -255,13 +255,14 @@ class _BookingScreenState extends State<BookingScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final paymentSuccess = await PaymentService().processPayment(
+      // Usar processPaymentWithIntent para obter o payment_intent_id
+      final paymentResult = await PaymentService().processPaymentWithIntent(
         amount: _totalPrice,
         currency: 'eur',
         context: context,
       );
 
-      if (!paymentSuccess) {
+      if (!paymentResult.success) {
         setState(() => _isSubmitting = false);
         return;
       }
@@ -280,10 +281,11 @@ class _BookingScreenState extends State<BookingScreen> {
         eventType: _eventType,
         totalPrice: _totalPrice,
         status: 'pending',
+        paymentIntentId: paymentResult.paymentIntentId,  // Guardar para webhook
         payment: PaymentInfo(
           method: 'card',
           status: 'paid',
-          transactionId: 'stripe_${DateTime.now().millisecondsSinceEpoch}',
+          transactionId: paymentResult.paymentIntentId,
         ),
         specialRequests: _specialRequestsController.text.trim().isNotEmpty
             ? _specialRequestsController.text.trim()
@@ -337,7 +339,7 @@ class _BookingScreenState extends State<BookingScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.successOpacity10,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -453,7 +455,7 @@ class _BookingScreenState extends State<BookingScreen> {
               Icon(
                 Icons.error_outline_rounded,
                 size: 64,
-                color: AppColors.error.withOpacity(0.5),
+                color: AppColors.errorOpacity50,
               ),
               const SizedBox(height: 16),
               Text(
@@ -573,7 +575,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
                 colors: [
-                  Colors.black.withOpacity(0.8),
+                  AppColors.blackOpacity70,
                   Colors.transparent,
                 ],
               ),
@@ -757,7 +759,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppColors.accent.withOpacity(0.15)
+                          ? AppColors.accentOpacity15
                           : (isDark
                               ? AppColors.darkCardHover
                               : AppColors.lightCardHover),
@@ -807,7 +809,7 @@ class _BookingScreenState extends State<BookingScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: hasInsurance
-                  ? AppColors.success.withOpacity(0.1)
+                  ? AppColors.successOpacity10
                   : null,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(16),
@@ -886,7 +888,7 @@ class _BookingScreenState extends State<BookingScreen> {
               margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
+                color: AppColors.warningOpacity10,
                 borderRadius: AppRadius.borderRadiusMd,
               ),
               child: Row(
@@ -1020,7 +1022,7 @@ class _BookingScreenState extends State<BookingScreen> {
           const SizedBox(height: 12),
           Container(
             height: 1,
-            color: Colors.white.withOpacity(0.2),
+            color: AppColors.whiteOpacity20,
           ),
           const SizedBox(height: 12),
           Row(
@@ -1065,10 +1067,10 @@ class _BookingScreenState extends State<BookingScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.info.withOpacity(0.1),
+        color: AppColors.infoOpacity10,
         borderRadius: AppRadius.borderRadiusMd,
         border: Border.all(
-          color: AppColors.info.withOpacity(0.3),
+          color: AppColors.infoOpacity30,
         ),
       ),
       child: Row(

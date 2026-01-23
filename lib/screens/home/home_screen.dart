@@ -150,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: AppColors.whiteOpacity15,
                     borderRadius: AppRadius.borderRadiusMd,
                   ),
                   child: const Icon(Icons.notifications_rounded, color: Colors.white, size: 20),
@@ -182,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: AppColors.whiteOpacity15,
                 borderRadius: AppRadius.borderRadiusMd,
               ),
               child: const Icon(Icons.chat_bubble_rounded, color: Colors.white, size: 20),
@@ -197,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: AppColors.whiteOpacity15,
                 borderRadius: AppRadius.borderRadiusMd,
               ),
               child: const Icon(Icons.map_rounded, color: Colors.white, size: 20),
@@ -220,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.9),
+                      color: AppColors.accentOpacity90,
                       borderRadius: AppRadius.borderRadiusMd,
                     ),
                     child: const Icon(
@@ -254,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 200,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.08),
+                    color: AppColors.whiteOpacity08,
                   ),
                 ),
               ),
@@ -266,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 150,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
+                    color: AppColors.whiteOpacity05,
                   ),
                 ),
               ),
@@ -352,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
         color: isOutlined ? Colors.transparent : color.withOpacity(0.2),
         borderRadius: AppRadius.borderRadiusFull,
         border: Border.all(
-          color: isOutlined ? Colors.white.withOpacity(0.4) : Colors.transparent,
+          color: isOutlined ? AppColors.whiteOpacity40 : Colors.transparent,
         ),
       ),
       child: Row(
@@ -396,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.whiteOpacity20,
                 borderRadius: AppRadius.borderRadiusMd,
               ),
               child: const Icon(
@@ -422,7 +422,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     AppLocalizations.of(context)!.trustScore(user.trustLevel),
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.85),
+                      color: AppColors.whiteOpacity85,
                       fontSize: 13,
                     ),
                   ),
@@ -437,7 +437,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   CircularProgressIndicator(
                     value: user.reliabilityScore,
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: AppColors.whiteOpacity20,
                     valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                     strokeWidth: 5,
                   ),
@@ -752,7 +752,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
                           colors: [
-                            Colors.black.withOpacity(0.6),
+                            AppColors.blackOpacity60,
                             Colors.transparent,
                           ],
                         ),

@@ -298,7 +298,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primaryOpacity10,
                         borderRadius: AppRadius.borderRadiusSm,
                       ),
                       child: const Icon(
@@ -361,7 +361,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.1),
+                        color: AppColors.successOpacity10,
                         borderRadius: AppRadius.borderRadiusSm,
                       ),
                       child: const Icon(
@@ -508,7 +508,7 @@ class _AccountTypeCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withOpacity(0.1)
+              ? AppColors.primaryOpacity10
               : (isDark ? AppColors.darkCard : AppColors.lightCard),
           borderRadius: AppRadius.borderRadiusLg,
           border: Border.all(
@@ -527,7 +527,7 @@ class _AccountTypeCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppColors.primary
-                    : AppColors.primary.withOpacity(0.1),
+                    : AppColors.primaryOpacity10,
                 borderRadius: AppRadius.borderRadiusMd,
               ),
               child: Icon(

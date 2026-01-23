@@ -227,7 +227,7 @@ class _BookingsListScreenState extends State<BookingsListScreen>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.errorOpacity10,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -265,7 +265,7 @@ class _BookingsListScreenState extends State<BookingsListScreen>
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primaryOpacity10,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -308,7 +308,7 @@ class _BookingsListScreenState extends State<BookingsListScreen>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
+                color: AppColors.warningOpacity10,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -392,6 +392,7 @@ class _ModernBookingCard extends StatelessWidget {
         Provider.of<DatabaseService>(context, listen: false);
 
     return TweenAnimationBuilder<double>(
+      key: ValueKey('booking_anim_${booking.bookingId}'),
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 300 + (index * 50)),
       curve: Curves.easeOutCubic,
@@ -950,7 +951,7 @@ class _ModernBookingCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.accent.withOpacity(0.1),
+                        color: AppColors.accentOpacity10,
                         borderRadius: AppRadius.borderRadiusFull,
                       ),
                       child: Text(
@@ -979,10 +980,10 @@ class _ModernBookingCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.1),
+                      color: AppColors.accentOpacity10,
                       borderRadius: AppRadius.borderRadiusMd,
                       border: Border.all(
-                        color: AppColors.accent.withOpacity(0.3),
+                        color: AppColors.accentOpacity30,
                       ),
                     ),
                     child: Text(booking.specialRequests!),

@@ -171,7 +171,7 @@ class StyledRangeSlider extends StatelessWidget {
                 ? AppColors.darkCardHover
                 : Colors.grey[300],
             thumbColor: AppColors.primary,
-            overlayColor: AppColors.primary.withOpacity(0.2),
+            overlayColor: AppColors.primaryOpacity20,
             rangeThumbShape: const RoundRangeSliderThumbShape(
               enabledThumbRadius: 10,
             ),
@@ -427,7 +427,7 @@ class StyledRadioGroup<T> extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withOpacity(0.1)
+              ? AppColors.primaryOpacity10
               : (isDark ? AppColors.darkCard : Colors.white),
           borderRadius: AppRadius.borderRadiusMd,
           border: Border.all(
@@ -532,7 +532,7 @@ class ChipSelect extends StatelessWidget {
               onChanged(value ? [option] : []);
             }
           },
-          selectedColor: AppColors.primary.withOpacity(0.2),
+          selectedColor: AppColors.primaryOpacity20,
           checkmarkColor: AppColors.primary,
           labelStyle: TextStyle(
             color: isSelected ? AppColors.primary : null,

@@ -127,7 +127,7 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: AppColors.primary.withOpacity(0.1),
+              backgroundColor: AppColors.primaryOpacity10,
               child: Text(
                 otherName.isNotEmpty ? otherName[0].toUpperCase() : '?',
                 style: TextStyle(
@@ -196,7 +196,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Icon(
             Icons.chat_bubble_outline_rounded,
             size: 64,
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primaryOpacity30,
           ),
           const SizedBox(height: 16),
           const Text('Nenhuma mensagem ainda'),

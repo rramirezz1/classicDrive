@@ -36,7 +36,7 @@ class ModernSearchField extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: AppColors.blackOpacity05,
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -89,7 +89,7 @@ class GradientFAB extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
-          colors: colors ?? [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: colors ?? [AppColors.primary, AppColors.primaryOpacity80],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -202,7 +202,7 @@ class _ExpandableFABState extends State<ExpandableFAB>
                       borderRadius: AppRadius.borderRadiusMd,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: AppColors.blackOpacity08,
                           blurRadius: 8,
                         ),
                       ],

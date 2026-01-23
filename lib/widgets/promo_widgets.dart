@@ -85,7 +85,7 @@ class _PromoBannerState extends State<PromoBanner>
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppColors.whiteOpacity20,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -111,7 +111,7 @@ class _PromoBannerState extends State<PromoBanner>
                       Text(
                         widget.subtitle,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: AppColors.whiteOpacity90,
                           fontSize: 13,
                         ),
                       ),
@@ -122,7 +122,7 @@ class _PromoBannerState extends State<PromoBanner>
                   IconButton(
                     icon: Icon(
                       Icons.close_rounded,
-                      color: Colors.white.withOpacity(0.8),
+                      color: AppColors.whiteOpacity70,
                       size: 20,
                     ),
                     onPressed: () => setState(() => _isDismissed = true),

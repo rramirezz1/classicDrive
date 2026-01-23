@@ -183,6 +183,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     itemCount: _notifications.length,
                     itemBuilder: (context, index) {
                       return TweenAnimationBuilder<double>(
+                        key: ValueKey('notif_anim_${_notifications[index].id}'),
                         tween: Tween(begin: 0.0, end: 1.0),
                         duration: Duration(milliseconds: 200 + (index * 50)),
                         builder: (context, value, child) {
@@ -210,7 +211,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.1),
+              color: AppColors.infoOpacity10,
               shape: BoxShape.circle,
             ),
             child: Icon(

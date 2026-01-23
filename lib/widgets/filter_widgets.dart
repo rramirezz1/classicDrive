@@ -191,7 +191,7 @@ class _LocationFilterWidgetState extends State<LocationFilterWidget> {
                           ),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.primary.withOpacity(0.1)
+                                ? AppColors.primaryOpacity10
                                 : null,
                             borderRadius: AppRadius.borderRadiusSm,
                           ),

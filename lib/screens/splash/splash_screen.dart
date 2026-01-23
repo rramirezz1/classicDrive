@@ -57,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 1500));
 
     if (mounted) {
-      context.go('/');
+      context.go('/login');
     }
   }
 
@@ -104,7 +104,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 300,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.05),
+                  color: AppColors.whiteOpacity05,
                 ),
               ),
             ),
@@ -116,7 +116,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 400,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.accent.withOpacity(0.1),
+                  color: AppColors.accentOpacity10,
                 ),
               ),
             ),
@@ -143,13 +143,13 @@ class _SplashScreenState extends State<SplashScreen>
                                 end: Alignment.bottomRight,
                                 colors: [
                                   AppColors.accent,
-                                  AppColors.accent.withOpacity(0.8),
+                                  AppColors.accentOpacity80,
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(30),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.accent.withOpacity(0.4),
+                                  color: AppColors.accentOpacity40,
                                   blurRadius: 30,
                                   spreadRadius: 5,
                                 ),
@@ -184,7 +184,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 letterSpacing: 2,
                                 shadows: [
                                   Shadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: AppColors.blackOpacity30,
                                     blurRadius: 10,
                                   ),
                                 ],
@@ -195,7 +195,7 @@ class _SplashScreenState extends State<SplashScreen>
                               'Carros Clássicos Premium',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.white.withOpacity(0.8),
+                                color: AppColors.whiteOpacity70,
                                 letterSpacing: 3,
                                 fontWeight: FontWeight.w300,
                               ),
@@ -226,7 +226,7 @@ class _SplashScreenState extends State<SplashScreen>
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.accent.withOpacity(0.8),
+                            AppColors.accentOpacity80,
                           ),
                         ),
                       ),

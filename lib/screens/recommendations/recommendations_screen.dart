@@ -7,6 +7,7 @@ import '../../services/auth_service.dart';
 import '../../widgets/animated_widgets.dart';
 import '../../widgets/loading_widgets.dart';
 import '../../widgets/rating_widget.dart';
+import '../../theme/app_colors.dart';
 
 class RecommendationsScreen extends StatefulWidget {
   const RecommendationsScreen({super.key});
@@ -295,7 +296,7 @@ class _RecommendationCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: AppColors.blackOpacity20,
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),

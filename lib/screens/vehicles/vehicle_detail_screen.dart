@@ -192,7 +192,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
               Icon(
                 Icons.error_outline_rounded,
                 size: 64,
-                color: AppColors.error.withOpacity(0.5),
+                color: AppColors.errorOpacity50,
               ),
               const SizedBox(height: 16),
               Text(
@@ -237,7 +237,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
       left: 16,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.4),
+          color: AppColors.blackOpacity40,
           borderRadius: AppRadius.borderRadiusMd,
         ),
         child: IconButton(
@@ -254,7 +254,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
       right: 16,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.4),
+          color: AppColors.blackOpacity40,
           borderRadius: AppRadius.borderRadiusMd,
         ),
         child: IconButton(
@@ -278,7 +278,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
       right: isOwner ? 16 : 72,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.4),
+          color: AppColors.blackOpacity40,
           borderRadius: AppRadius.borderRadiusMd,
         ),
         child: IconButton(
@@ -566,7 +566,7 @@ $deepLink
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      Colors.black.withOpacity(0.7),
+                      AppColors.blackOpacity70,
                       Colors.transparent,
                     ],
                   ),
@@ -593,7 +593,7 @@ $deepLink
                         borderRadius: AppRadius.borderRadiusFull,
                         color: _currentImageIndex == index
                             ? Colors.white
-                            : Colors.white.withOpacity(0.4),
+                            : AppColors.whiteOpacity40,
                       ),
                     ),
                   ),
@@ -717,7 +717,7 @@ $deepLink
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primaryOpacity10,
             borderRadius: AppRadius.borderRadiusFull,
           ),
           child: Row(
@@ -915,10 +915,10 @@ $deepLink
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
+                    color: AppColors.successOpacity10,
                     borderRadius: AppRadius.borderRadiusFull,
                     border: Border.all(
-                      color: AppColors.success.withOpacity(0.3),
+                      color: AppColors.successOpacity30,
                     ),
                   ),
                   child: Text(
@@ -1012,7 +1012,7 @@ $deepLink
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
+                    color: AppColors.successOpacity10,
                     borderRadius: AppRadius.borderRadiusMd,
                   ),
                   child: IconButton(
@@ -1031,7 +1031,7 @@ $deepLink
                 const SizedBox(width: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primaryOpacity10,
                     borderRadius: AppRadius.borderRadiusMd,
                   ),
                   child: IconButton(
@@ -1065,7 +1065,7 @@ $deepLink
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.1),
+                    color: AppColors.accentOpacity10,
                     borderRadius: AppRadius.borderRadiusSm,
                   ),
                   child: const Icon(
@@ -1188,7 +1188,7 @@ $deepLink
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.blackOpacity08,
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -1280,9 +1280,11 @@ $deepLink
               ),
             ),
             const SizedBox(width: 12),
-            Text(_vehicle!.isAvailable
-                ? 'Marcar como Indisponível?'
-                : 'Marcar como Disponível?'),
+            Expanded(
+              child: Text(_vehicle!.isAvailable
+                  ? 'Marcar como Indisponível?'
+                  : 'Marcar como Disponível?'),
+            ),
           ],
         ),
         content: Text(

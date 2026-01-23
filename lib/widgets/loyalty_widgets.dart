@@ -62,7 +62,7 @@ class LoyaltyCard extends StatelessWidget {
                         Text(
                           '${loyalty.discountPercentage.toInt()}% desconto',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
+                            color: AppColors.whiteOpacity70,
                             fontSize: 13,
                           ),
                         ),
@@ -76,7 +76,7 @@ class LoyaltyCard extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppColors.whiteOpacity20,
                     borderRadius: AppRadius.borderRadiusFull,
                   ),
                   child: Text(
@@ -100,14 +100,14 @@ class LoyaltyCard extends StatelessWidget {
                   Text(
                     'Próximo nível',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: AppColors.whiteOpacity70,
                       fontSize: 12,
                     ),
                   ),
                   Text(
                     '${loyalty.pointsToNextTier} pts restantes',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: AppColors.whiteOpacity70,
                       fontSize: 12,
                     ),
                   ),
@@ -119,7 +119,7 @@ class LoyaltyCard extends StatelessWidget {
                   Container(
                     height: 6,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.3),
+                      color: AppColors.whiteOpacity30,
                       borderRadius: AppRadius.borderRadiusFull,
                     ),
                   ),
@@ -147,7 +147,7 @@ class LoyaltyCard extends StatelessWidget {
                   Text(
                     'Nível máximo atingido!',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
+                      color: AppColors.whiteOpacity90,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -186,7 +186,7 @@ class LoyaltyCard extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
+            color: AppColors.whiteOpacity70,
             fontSize: 11,
           ),
         ),

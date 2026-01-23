@@ -54,7 +54,7 @@ class UserProfileCard extends StatelessWidget {
                     gradient: LinearGradient(
                       colors: [
                         AppColors.primary,
-                        AppColors.primary.withOpacity(0.7),
+                        AppColors.primaryOpacity70,
                       ],
                     ),
                   ),
@@ -177,7 +177,7 @@ class UserProfileCard extends StatelessWidget {
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primaryOpacity10,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -462,7 +462,7 @@ class ContactOwnerSheet extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primaryOpacity10,
                   shape: BoxShape.circle,
                 ),
                 child: Text(
@@ -538,7 +538,7 @@ class ContactOwnerSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.warning.withOpacity(0.1),
+              color: AppColors.warningOpacity10,
               borderRadius: AppRadius.borderRadiusMd,
             ),
             child: Row(
@@ -660,7 +660,7 @@ class QuickReplyChip extends StatelessWidget {
           color: isDark ? AppColors.darkCard : Colors.white,
           borderRadius: AppRadius.borderRadiusFull,
           border: Border.all(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primaryOpacity30,
           ),
         ),
         child: Text(

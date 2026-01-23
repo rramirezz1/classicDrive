@@ -250,17 +250,17 @@ class _AvailabilityCalendarState extends State<AvailabilityCalendar> {
     BoxDecoration? decoration;
 
     if (isBlocked) {
-      bgColor = AppColors.error.withOpacity(0.15);
+      bgColor = AppColors.errorOpacity15;
       textColor = AppColors.error;
     } else if (isBooked) {
-      bgColor = AppColors.warning.withOpacity(0.15);
+      bgColor = AppColors.warningOpacity15;
       textColor = AppColors.warning;
     } else if (isSelected) {
       if (isStart || isEnd) {
         bgColor = AppColors.primary;
         textColor = Colors.white;
       } else {
-        bgColor = AppColors.primary.withOpacity(0.2);
+        bgColor = AppColors.primaryOpacity20;
         textColor = AppColors.primary;
       }
     } else if (isPast) {

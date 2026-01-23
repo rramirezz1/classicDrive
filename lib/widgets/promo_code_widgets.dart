@@ -87,7 +87,7 @@ class _PromoCodeInputState extends State<PromoCodeInput> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.1),
+                      color: AppColors.accentOpacity10,
                       borderRadius: AppRadius.borderRadiusSm,
                     ),
                     child: Icon(
@@ -129,7 +129,7 @@ class _PromoCodeInputState extends State<PromoCodeInput> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.1),
+                        color: AppColors.successOpacity10,
                         borderRadius: AppRadius.borderRadiusFull,
                       ),
                       child: Text(
@@ -269,9 +269,9 @@ class AppliedPromoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.success.withOpacity(0.1),
+        color: AppColors.successOpacity10,
         borderRadius: AppRadius.borderRadiusMd,
-        border: Border.all(color: AppColors.success.withOpacity(0.3)),
+        border: Border.all(color: AppColors.successOpacity30),
       ),
       child: Row(
         children: [

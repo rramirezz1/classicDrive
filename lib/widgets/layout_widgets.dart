@@ -84,7 +84,7 @@ class GradientContainer extends StatelessWidget {
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: colors ?? [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: colors ?? [AppColors.primary, AppColors.primaryOpacity80],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

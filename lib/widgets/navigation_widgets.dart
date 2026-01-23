@@ -55,7 +55,7 @@ class GradientHeader extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: AppColors.whiteOpacity70,
                       fontSize: 14,
                     ),
                   ),
@@ -115,7 +115,7 @@ class CustomBottomBar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.primary.withOpacity(0.1)
+                    ? AppColors.primaryOpacity10
                     : Colors.transparent,
                 borderRadius: AppRadius.borderRadiusFull,
               ),
@@ -203,7 +203,7 @@ class SegmentedTabBar extends StatelessWidget {
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: AppColors.blackOpacity08,
                             blurRadius: 4,
                           ),
                         ]

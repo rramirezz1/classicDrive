@@ -146,6 +146,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         itemCount: _favorites.length,
         itemBuilder: (context, index) {
           return TweenAnimationBuilder<double>(
+            key: ValueKey('fav_anim_${_favorites[index].vehicleId}'),
             tween: Tween(begin: 0.0, end: 1.0),
             duration: Duration(milliseconds: 200 + (index * 50).clamp(0, 300)),
             builder: (context, value, child) {
@@ -299,7 +300,7 @@ class _FavoriteCard extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: AppColors.error.withOpacity(0.1),
+                                color: AppColors.errorOpacity10,
                                 borderRadius: AppRadius.borderRadiusSm,
                               ),
                               child: Icon(

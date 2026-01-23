@@ -145,7 +145,7 @@ class ReviewCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: AppColors.primary.withOpacity(0.1),
+                backgroundColor: AppColors.primaryOpacity10,
                 child: Text(
                   review.reviewerName[0].toUpperCase(),
                   style: TextStyle(
@@ -173,7 +173,7 @@ class ReviewCard extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.success.withOpacity(0.1),
+                              color: AppColors.successOpacity10,
                               borderRadius: AppRadius.borderRadiusSm,
                             ),
                             child: Row(
@@ -253,9 +253,9 @@ class ReviewCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
+                color: AppColors.primaryOpacity05,
                 borderRadius: AppRadius.borderRadiusMd,
-                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                border: Border.all(color: AppColors.primaryOpacity20),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,7 +307,7 @@ class ReviewCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: isHelpfulByMe
-                          ? AppColors.primary.withOpacity(0.1)
+                          ? AppColors.primaryOpacity10
                           : Colors.transparent,
                       borderRadius: AppRadius.borderRadiusFull,
                       border: Border.all(

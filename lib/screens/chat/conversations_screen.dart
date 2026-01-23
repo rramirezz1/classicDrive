@@ -87,7 +87,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primaryOpacity10,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -146,7 +146,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           radius: 28,
-          backgroundColor: AppColors.primary.withOpacity(0.1),
+          backgroundColor: AppColors.primaryOpacity10,
           backgroundImage: otherAvatar != null
               ? NetworkImage(otherAvatar)
               : null,

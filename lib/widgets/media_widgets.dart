@@ -106,7 +106,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                       decoration: BoxDecoration(
                         color: _currentIndex == index
                             ? Colors.white
-                            : Colors.white.withOpacity(0.5),
+                            : AppColors.whiteOpacity40,
                         borderRadius: AppRadius.borderRadiusFull,
                       ),
                     );
@@ -122,7 +122,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
+                    color: AppColors.blackOpacity60,
                     borderRadius: AppRadius.borderRadiusFull,
                   ),
                   child: Text(
@@ -278,7 +278,7 @@ class UserAvatar extends StatelessWidget {
                   ? LinearGradient(
                       colors: [
                         AppColors.primary,
-                        AppColors.primary.withOpacity(0.7),
+                        AppColors.primaryOpacity70,
                       ],
                     )
                   : null,
@@ -385,7 +385,7 @@ class ImageThumbnail extends StatelessWidget {
             ),
             if (overlayIcon != null)
               Container(
-                color: Colors.black.withOpacity(0.4),
+                color: AppColors.blackOpacity40,
                 child: Center(
                   child: Icon(overlayIcon, color: Colors.white, size: 24),
                 ),
@@ -476,7 +476,7 @@ class ImageGrid extends StatelessWidget {
                     ),
                     if (isLast)
                       Container(
-                        color: Colors.black.withOpacity(0.6),
+                        color: AppColors.blackOpacity60,
                         child: Center(
                           child: Text(
                             '+$remaining',

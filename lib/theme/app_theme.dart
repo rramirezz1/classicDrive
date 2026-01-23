@@ -140,7 +140,7 @@ class AppTheme {
       backgroundColor: AppColors.darkSurface,
       elevation: 0,
       height: 80,
-      indicatorColor: AppColors.primary.withOpacity(0.2),
+      indicatorColor: AppColors.primaryOpacity20,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
           return AppTypography.darkTextTheme.labelSmall?.copyWith(
@@ -163,7 +163,7 @@ class AppTheme {
     // Chips
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.darkCard,
-      selectedColor: AppColors.primary.withOpacity(0.2),
+      selectedColor: AppColors.primaryOpacity20,
       disabledColor: AppColors.darkCard,
       labelStyle: AppTypography.darkTextTheme.labelMedium!,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -246,7 +246,7 @@ class AppTheme {
       activeTrackColor: AppColors.primary,
       inactiveTrackColor: AppColors.darkBorder,
       thumbColor: AppColors.primary,
-      overlayColor: AppColors.primary.withOpacity(0.2),
+      overlayColor: AppColors.primaryOpacity20,
       trackHeight: 4,
     ),
     
@@ -260,7 +260,7 @@ class AppTheme {
       }),
       trackColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return AppColors.primary.withOpacity(0.3);
+          return AppColors.primaryOpacity30;
         }
         return AppColors.darkBorder;
       }),
@@ -395,7 +395,7 @@ class AppTheme {
       backgroundColor: AppColors.lightSurface,
       elevation: 0,
       height: 80,
-      indicatorColor: AppColors.primary.withOpacity(0.1),
+      indicatorColor: AppColors.primaryOpacity10,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
           return AppTypography.lightTextTheme.labelSmall?.copyWith(
@@ -417,7 +417,7 @@ class AppTheme {
     
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.lightCard,
-      selectedColor: AppColors.primary.withOpacity(0.1),
+      selectedColor: AppColors.primaryOpacity10,
       disabledColor: AppColors.lightCard,
       labelStyle: AppTypography.lightTextTheme.labelMedium!,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -492,7 +492,7 @@ class AppTheme {
       activeTrackColor: AppColors.primary,
       inactiveTrackColor: AppColors.lightBorder,
       thumbColor: AppColors.primary,
-      overlayColor: AppColors.primary.withOpacity(0.2),
+      overlayColor: AppColors.primaryOpacity20,
       trackHeight: 4,
     ),
     
@@ -505,7 +505,7 @@ class AppTheme {
       }),
       trackColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return AppColors.primary.withOpacity(0.3);
+          return AppColors.primaryOpacity30;
         }
         return AppColors.lightBorder;
       }),

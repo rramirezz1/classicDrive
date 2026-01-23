@@ -34,7 +34,7 @@ class CustomTooltip extends StatelessWidget {
         borderRadius: AppRadius.borderRadiusSm,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: AppColors.blackOpacity20,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -212,7 +212,7 @@ class _PopoverOverlay extends StatelessWidget {
                   borderRadius: AppRadius.borderRadiusMd,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
+                      color: AppColors.blackOpacity20,
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -317,7 +317,7 @@ class HelpBubble extends StatelessWidget {
             borderRadius: AppRadius.borderRadiusMd,
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.3),
+                color: AppColors.primaryOpacity30,
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),

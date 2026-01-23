@@ -26,7 +26,7 @@ class ModernBottomNav extends StatelessWidget {
       child: ClipRRect(
         borderRadius: AppRadius.borderRadiusXl,
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             height: 72,
             decoration: BoxDecoration(
@@ -150,7 +150,7 @@ class _NavItemWidgetState extends State<_NavItemWidget>
                   padding: EdgeInsets.all(widget.isSelected ? 10 : 8),
                   decoration: BoxDecoration(
                     color: widget.isSelected
-                        ? AppColors.primary.withOpacity(0.15)
+                        ? AppColors.primaryOpacity15
                         : Colors.transparent,
                     borderRadius: AppRadius.borderRadiusMd,
                   ),
@@ -325,7 +325,7 @@ class ModernSliverAppBar extends StatelessWidget {
                       height: 200,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.1),
+                        color: AppColors.whiteOpacity10,
                       ),
                     ),
                   ),
@@ -337,7 +337,7 @@ class ModernSliverAppBar extends StatelessWidget {
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.05),
+                        color: AppColors.whiteOpacity05,
                       ),
                     ),
                   ),

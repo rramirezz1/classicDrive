@@ -46,7 +46,7 @@ class PriceCalculatorWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primaryOpacity10,
                   borderRadius: AppRadius.borderRadiusSm,
                 ),
                 child: Icon(
@@ -129,7 +129,7 @@ class PriceCalculatorWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.info.withOpacity(0.1),
+                color: AppColors.infoOpacity10,
                 borderRadius: AppRadius.borderRadiusMd,
               ),
               child: Row(
@@ -203,7 +203,7 @@ class SavingsBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.success, AppColors.success.withOpacity(0.8)],
+          colors: [AppColors.success, AppColors.successOpacity80],
         ),
         borderRadius: AppRadius.borderRadiusFull,
       ),

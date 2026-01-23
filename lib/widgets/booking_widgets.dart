@@ -73,7 +73,7 @@ class BookingSummaryCard extends StatelessWidget {
           ),
           boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.blackOpacity08,
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -502,7 +502,7 @@ class DateRangeSelector extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.1),
+              color: AppColors.infoOpacity10,
               borderRadius: AppRadius.borderRadiusMd,
             ),
             child: Row(

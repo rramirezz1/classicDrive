@@ -301,8 +301,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: _images.isEmpty
-                    ? AppColors.error.withOpacity(0.1)
-                    : AppColors.success.withOpacity(0.1),
+                    ? AppColors.errorOpacity10
+                    : AppColors.successOpacity10,
                 borderRadius: AppRadius.borderRadiusFull,
               ),
               child: Text(
@@ -354,12 +354,12 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           border: Border.all(
-            color: AppColors.primary.withOpacity(0.5),
+            color: AppColors.primaryOpacity50,
             width: 2,
             style: BorderStyle.solid,
           ),
           borderRadius: AppRadius.borderRadiusMd,
-          color: AppColors.primary.withOpacity(0.05),
+          color: AppColors.primaryOpacity05,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -367,7 +367,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primaryOpacity10,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -635,7 +635,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.1),
+                      color: AppColors.errorOpacity10,
                       borderRadius: AppRadius.borderRadiusFull,
                     ),
                     child: const Text(
@@ -680,7 +680,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                             horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.success.withOpacity(0.15)
+                              ? AppColors.successOpacity10
                               : (isDark
                                   ? AppColors.darkCardHover
                                   : AppColors.lightCardHover),
@@ -802,7 +802,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                             horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.warning.withOpacity(0.15)
+                              ? AppColors.warningOpacity10
                               : (isDark
                                   ? AppColors.darkCardHover
                                   : AppColors.lightCardHover),

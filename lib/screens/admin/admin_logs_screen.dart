@@ -272,7 +272,7 @@ class _AdminLogsScreenState extends State<AdminLogsScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.1),
+              color: AppColors.infoOpacity10,
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.history_rounded, size: 48, color: AppColors.info),
