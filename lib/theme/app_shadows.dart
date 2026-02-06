@@ -24,12 +24,12 @@ class AppShadows {
 
   static List<BoxShadow> get softShadowDark => [
     BoxShadow(
-      color: AppColors.blackOpacity30,
+      color: AppColors.blackOpacity10,  // Reduzido de 30% para 10%
       blurRadius: 10,
       offset: const Offset(0, 4),
     ),
     BoxShadow(
-      color: AppColors.blackOpacity20,
+      color: AppColors.blackOpacity08,  // Reduzido de 20% para 8%
       blurRadius: 20,
       offset: const Offset(0, 8),
     ),
@@ -54,12 +54,12 @@ class AppShadows {
 
   static List<BoxShadow> get mediumShadowDark => [
     BoxShadow(
-      color: AppColors.blackOpacity40,
+      color: AppColors.blackOpacity12,  // Reduzido de 40% para 12%
       blurRadius: 16,
       offset: const Offset(0, 6),
     ),
     BoxShadow(
-      color: AppColors.blackOpacity30,
+      color: AppColors.blackOpacity10,  // Reduzido de 30% para 10%
       blurRadius: 32,
       offset: const Offset(0, 12),
     ),

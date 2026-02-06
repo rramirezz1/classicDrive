@@ -1,6 +1,6 @@
 /// Modelo de fidelidade/pontos do utilizador.
 
-enum LoyaltyTier { bronze, silver, gold }
+enum LoyaltyTier { bronze, silver, gold, platinum }
 
 class LoyaltyModel {
   final String oderId;
@@ -25,7 +25,8 @@ class LoyaltyModel {
 
   /// Calcula o tier com base nos pontos totais.
   static LoyaltyTier calculateTier(int points) {
-    if (points >= 2000) return LoyaltyTier.gold;
+    if (points >= 5000) return LoyaltyTier.platinum;
+    if (points >= 1500) return LoyaltyTier.gold;
     if (points >= 500) return LoyaltyTier.silver;
     return LoyaltyTier.bronze;
   }
@@ -36,9 +37,11 @@ class LoyaltyModel {
       case LoyaltyTier.bronze:
         return 500 - totalPoints;
       case LoyaltyTier.silver:
-        return 2000 - totalPoints;
+        return 1500 - totalPoints;
       case LoyaltyTier.gold:
-        return 0; // Já é gold
+        return 5000 - totalPoints;
+      case LoyaltyTier.platinum:
+        return 0; // Já é platinum
     }
   }
 
@@ -48,8 +51,10 @@ class LoyaltyModel {
       case LoyaltyTier.bronze:
         return totalPoints / 500;
       case LoyaltyTier.silver:
-        return (totalPoints - 500) / 1500;
+        return (totalPoints - 500) / 1000;
       case LoyaltyTier.gold:
+        return (totalPoints - 1500) / 3500;
+      case LoyaltyTier.platinum:
         return 1.0;
     }
   }
@@ -63,6 +68,8 @@ class LoyaltyModel {
         return 5.0;
       case LoyaltyTier.gold:
         return 10.0;
+      case LoyaltyTier.platinum:
+        return 15.0;
     }
   }
 
@@ -75,6 +82,8 @@ class LoyaltyModel {
         return 'Prata';
       case LoyaltyTier.gold:
         return 'Ouro';
+      case LoyaltyTier.platinum:
+        return 'Platina';
     }
   }
 

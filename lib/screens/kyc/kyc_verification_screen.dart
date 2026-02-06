@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'dart:io';
 import '../../services/auth_service.dart';
 import '../../services/verification_service.dart';
+import 'kyc_camera_screen.dart';
 
 class KYCVerificationScreen extends StatefulWidget {
   const KYCVerificationScreen({super.key});
@@ -186,7 +187,7 @@ class _KYCVerificationScreenState extends State<KYCVerificationScreen> {
             )
           else
             ElevatedButton.icon(
-              onPressed: () => _pickImage((image) => _selfieImage = image),
+              onPressed: () => _pickImage((image) => _selfieImage = image, overlayType: KycOverlayType.selfie),
               icon: const Icon(Icons.camera_alt),
               label: const Text('Tirar Selfie'),
               style: ElevatedButton.styleFrom(
@@ -516,7 +517,7 @@ class _KYCVerificationScreenState extends State<KYCVerificationScreen> {
     );
   }
 
-  Future<void> _pickImage(Function(File) onPicked) async {
+  Future<void> _pickImage(Function(File) onPicked, {KycOverlayType overlayType = KycOverlayType.document}) async {
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
@@ -528,12 +529,19 @@ class _KYCVerificationScreenState extends State<KYCVerificationScreen> {
               title: const Text('Câmara'),
               onTap: () async {
                 Navigator.pop(context);
-                final XFile? image = await _picker.pickImage(
-                  source: ImageSource.camera,
-                  imageQuality: 85,
+                // Usar câmara KYC personalizada
+                final File? image = await Navigator.push<File>(
+                  this.context,
+                  MaterialPageRoute(
+                    builder: (_) => KycCameraScreen(
+                      overlayType: overlayType,
+                      currentStep: _currentStep + 1,
+                      totalSteps: 4,
+                    ),
+                  ),
                 );
                 if (image != null) {
-                  setState(() => onPicked(File(image.path)));
+                  setState(() => onPicked(image));
                 }
               },
             ),

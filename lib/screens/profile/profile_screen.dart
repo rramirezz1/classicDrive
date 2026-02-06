@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../services/admin_service.dart';
@@ -117,6 +119,509 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _showLoyaltyDetails(BuildContext context, LoyaltyModel loyalty, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => SingleChildScrollView(
+          controller: scrollController,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              
+              // Title
+              Text(
+                'Programa de Fidelidade',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Ganhe pontos e desbloqueie descontos exclusivos!',
+                style: TextStyle(
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Current tier card
+              LoyaltyCard(loyalty: loyalty),
+              
+              const SizedBox(height: 24),
+              
+              // How to earn points
+              Text(
+                'Como ganhar pontos',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              _buildPointsRow(Icons.calendar_today_rounded, 'Primeira reserva', '+100 pts', isDark),
+              _buildPointsRow(Icons.directions_car_rounded, 'Cada reserva', '+50 pts', isDark),
+              _buildPointsRow(Icons.star_rounded, 'Deixar review', '+25 pts', isDark),
+              _buildPointsRow(Icons.people_rounded, 'Referir amigo', '+100 pts', isDark),
+              
+              const SizedBox(height: 24),
+              
+              // Tiers explanation
+              Text(
+                'Níveis de Membro',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              _buildTierRow('🥉', 'Bronze', '0-499 pts', '0% desc.', isDark),
+              _buildTierRow('🥈', 'Prata', '500-1499 pts', '5% desc.', isDark),
+              _buildTierRow('🥇', 'Ouro', '1500-4999 pts', '10% desc.', isDark),
+              _buildTierRow('💎', 'Platina', '5000+ pts', '15% desc.', isDark),
+              
+              const SizedBox(height: 24),
+              
+              // Referral code - só para Platinum
+              if (loyalty.tier == LoyaltyTier.platinum) ...[
+                Text(
+                  'O seu código de referência',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () => _showEditReferralCodeDialog(context, loyalty, isDark),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryOpacity10,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.primary),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.card_giftcard_rounded, color: AppColors.primary),
+                        const SizedBox(width: 12),
+                        Text(
+                          loyalty.referralCode ?? 'Toca para criar',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(Icons.edit_rounded, color: AppColors.primary, size: 18),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Partilha este código para dar 50pts bónus a amigos!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  ),
+                ),
+              ] else ...[
+                // Mensagem para não-Platinum
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentOpacity10,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.diamond_rounded, color: AppColors.accent, size: 32),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Código de Referência',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                              ),
+                            ),
+                            Text(
+                              'Atinge Platina (5000 pts) para desbloquear!',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              
+              const SizedBox(height: 24),
+              
+              // Enter friend's code
+              const Divider(),
+              const SizedBox(height: 16),
+              Text(
+                'Tens um código de amigo?',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showEnterFriendCodeDialog(context, isDark);
+                },
+                icon: const Icon(Icons.redeem_rounded),
+                label: const Text('Inserir código de amigo'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                  side: BorderSide(color: AppColors.accent),
+                  foregroundColor: AppColors.accent,
+                ),
+              ),
+              
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditReferralCodeDialog(BuildContext context, LoyaltyModel loyalty, bool isDark) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final prefs = await SharedPreferences.getInstance();
+    final userId = authService.currentUser?.id ?? '';
+    final hasEdited = prefs.getBool('referral_code_edited_$userId') ?? false;
+    
+    if (hasEdited) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Já personalizaste o teu código de referência.'),
+          backgroundColor: AppColors.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    
+    final controller = TextEditingController(text: loyalty.referralCode ?? '');
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        title: Text(
+          'Personalizar Código',
+          style: TextStyle(color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Escolhe um código único (só podes alterar uma vez!)',
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              maxLength: 10,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(
+                hintText: 'Ex: TIAGO100',
+                prefixText: 'CD',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newCode = 'CD${controller.text.trim().toUpperCase()}';
+              if (newCode.length < 5) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: const Text('Código demasiado curto')),
+                );
+                return;
+              }
+              
+              try {
+                // Atualizar na BD
+                await Supabase.instance.client
+                    .from('user_loyalty')
+                    .update({'referral_code': newCode})
+                    .eq('user_id', userId);
+                
+                // Marcar como editado
+                await prefs.setBool('referral_code_edited_$userId', true);
+                
+                Navigator.pop(dialogContext);
+                setState(() {}); // Refresh
+                
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Código alterado para $newCode'),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erro: $e'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEnterFriendCodeDialog(BuildContext context, bool isDark) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final prefs = await SharedPreferences.getInstance();
+    final userId = authService.currentUser?.id ?? '';
+    final hasUsedCode = prefs.getBool('used_friend_code_$userId') ?? false;
+    
+    if (hasUsedCode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Já usaste um código de amigo anteriormente.'),
+          backgroundColor: AppColors.warning,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    
+    final controller = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        title: Text(
+          'Inserir Código de Amigo',
+          style: TextStyle(color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Insere o código de referência de um amigo para ambos ganharem pontos!',
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(
+                hintText: 'Ex: CDTIAGO100',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final code = controller.text.trim().toUpperCase();
+              if (code.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: const Text('Insere um código válido')),
+                );
+                return;
+              }
+              
+              try {
+                final success = await LoyaltyService().processReferralCode(code, userId);
+                
+                Navigator.pop(dialogContext);
+                
+                if (success) {
+                  // Marcar como usado
+                  await prefs.setBool('used_friend_code_$userId', true);
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Código aceite! +50 pontos bónus 🎉'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Código inválido ou já usado'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erro: $e'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
+            child: const Text('Usar Código'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPointsRow(IconData icon, String action, String points, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primaryOpacity10,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 20, color: AppColors.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              action,
+              style: TextStyle(
+                color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+              ),
+            ),
+          ),
+          Text(
+            points,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.success,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTierRow(String emoji, String name, String range, String discount, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 24)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                  ),
+                ),
+                Text(
+                  range,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.accentOpacity10,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              discount,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.accent,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -182,7 +687,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       if (snapshot.hasData && snapshot.data != null) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 24),
-                          child: LoyaltyCard(loyalty: snapshot.data!),
+                          child: LoyaltyCard(
+                            loyalty: snapshot.data!,
+                            onTap: () => _showLoyaltyDetails(context, snapshot.data!, isDark),
+                          ),
                         );
                       }
                       return const SizedBox.shrink();

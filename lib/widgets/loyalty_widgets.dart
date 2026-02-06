@@ -93,7 +93,7 @@ class LoyaltyCard extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Progress bar
-            if (loyalty.tier != LoyaltyTier.gold) ...[
+            if (loyalty.tier != LoyaltyTier.platinum) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -202,6 +202,8 @@ class LoyaltyCard extends StatelessWidget {
         return const Color(0xFFC0C0C0);
       case LoyaltyTier.gold:
         return AppColors.accent;
+      case LoyaltyTier.platinum:
+        return const Color(0xFF1E88E5);  // Azul platina
     }
   }
 
@@ -225,6 +227,12 @@ class LoyaltyCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );
+      case LoyaltyTier.platinum:
+        return const LinearGradient(
+          colors: [Color(0xFF1E88E5), Color(0xFF0D47A1)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
     }
   }
 
@@ -236,6 +244,8 @@ class LoyaltyCard extends StatelessWidget {
         return Icons.shield_rounded;
       case LoyaltyTier.gold:
         return Icons.workspace_premium_rounded;
+      case LoyaltyTier.platinum:
+        return Icons.diamond_rounded;
     }
   }
 }
@@ -288,6 +298,8 @@ class LoyaltyBadge extends StatelessWidget {
         return const Color(0xFF808080);
       case LoyaltyTier.gold:
         return AppColors.accent;
+      case LoyaltyTier.platinum:
+        return const Color(0xFF1E88E5);
     }
   }
 
@@ -299,6 +311,8 @@ class LoyaltyBadge extends StatelessWidget {
         return Icons.shield_rounded;
       case LoyaltyTier.gold:
         return Icons.workspace_premium_rounded;
+      case LoyaltyTier.platinum:
+        return Icons.diamond_rounded;
     }
   }
 
@@ -310,6 +324,8 @@ class LoyaltyBadge extends StatelessWidget {
         return 'Prata';
       case LoyaltyTier.gold:
         return 'Ouro';
+      case LoyaltyTier.platinum:
+        return 'Platina';
     }
   }
 }

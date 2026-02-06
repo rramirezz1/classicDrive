@@ -69,16 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Recomendações personalizadas (para arrendatários)
-                  if (!isOwner && authService.currentUser != null) ...[
-                    const SizedBox(height: 24),
-                    RecommendationsWidget(
-                      title: AppLocalizations.of(context)!.recommendedForYou,
-                      limit: 5,
-                      showReasons: true,
-                    ),
-                  ],
-
                   const SizedBox(height: 24),
 
                   // Cartões de ação rápida

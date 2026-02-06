@@ -14,6 +14,7 @@ import '../../widgets/modern_card.dart';
 import '../../widgets/modern_button.dart';
 import '../insurance/insurance_screen.dart';
 import '../../services/payment_service.dart';
+import '../../services/loyalty_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_shadows.dart';
 
@@ -306,6 +307,15 @@ class _BookingScreenState extends State<BookingScreen> {
           } catch (e) {
             // Error ignored
           }
+        }
+
+        // Adicionar pontos de fidelidade
+        try {
+          // Verificar se é a primeira reserva pode ser feito no serviço ou passado aqui
+          // Por simplicidade assumimos reserva normal, o serviço pode verificar histórico
+          await LoyaltyService().addBookingPoints(authService.currentUser!.id);
+        } catch (e) {
+          print('Erro ao adicionar pontos: $e');
         }
 
         if (!mounted) return;

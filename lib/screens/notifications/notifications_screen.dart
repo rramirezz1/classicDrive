@@ -82,37 +82,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
 
-    // Simular carregamento - só carregar dados se lista estiver vazia
+    // Simular carregamento
     await Future.delayed(const Duration(milliseconds: 300));
 
-    if (NotificationState.notifications.isEmpty) {
-      // Dados de exemplo - só carrega uma vez
-      NotificationState.notifications = [
-        AppNotification(
-          id: '1',
-          title: 'Reserva Confirmada',
-          message: 'A sua reserva do Mercedes-Benz 300SL foi confirmada pelo proprietário.',
-          timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-          type: NotificationType.booking,
-          actionRoute: '/bookings',
-        ),
-        AppNotification(
-          id: '2',
-          title: 'Nova Avaliação',
-          message: 'Um cliente deixou uma avaliação no seu veículo.',
-          timestamp: DateTime.now().subtract(const Duration(days: 1)),
-          type: NotificationType.message,
-        ),
-        AppNotification(
-          id: '3',
-          title: 'Promoção Especial',
-          message: 'Aproveite 15% de desconto em reservas este fim de semana!',
-          timestamp: DateTime.now().subtract(const Duration(days: 3)),
-          type: NotificationType.promo,
-          isRead: true,
-        ),
-      ];
-    }
+    // Notificações reais serão adicionadas pelo sistema quando:
+    // - Reservas forem aprovadas/rejeitadas
+    // - Mensagens de chat recebidas
+    // - Reviews recebidas
+    // Por agora, começar com lista vazia para novos utilizadores
 
     if (mounted) setState(() => _isLoading = false);
   }

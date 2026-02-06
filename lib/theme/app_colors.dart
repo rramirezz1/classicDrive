@@ -57,11 +57,12 @@ class AppColors {
   // DARK MODE
   // ══════════════════════════════════════════════════════════════════════════
   
-  static const Color darkBackground = Color(0xFF0F0F23);
-  static const Color darkSurface = Color(0xFF1A1A2E);
-  static const Color darkCard = Color(0xFF16213E);
-  static const Color darkCardHover = Color(0xFF1F2B4D);
-  static const Color darkBorder = Color(0xFF2A2A4A);
+  // Cores lightened para visual mais vibrante
+  static const Color darkBackground = Color(0xFF1A1A2E);  // Mais claro (era 0F0F23)
+  static const Color darkSurface = Color(0xFF232340);     // Mais claro (era 1A1A2E)
+  static const Color darkCard = Color(0xFF2A2A4A);        // Mais claro (era 16213E)
+  static const Color darkCardHover = Color(0xFF343460);   // Mais claro (era 1F2B4D)
+  static const Color darkBorder = Color(0xFF3D3D5C);      // Mais claro (era 2A2A4A)
   
   static const Color darkTextPrimary = Color(0xFFF8FAFC);
   static const Color darkTextSecondary = Color(0xFF94A3B8);
@@ -101,9 +102,9 @@ class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF667EEA),
-      Color(0xFF764BA2),
-      Color(0xFF0F0F23),
+      Color(0xFF7B8EF0),   // Mais vibrante
+      Color(0xFF8B5CB6),   // Mais vibrante
+      Color(0xFF1A1A2E),   // Match com novo darkBackground
     ],
     stops: [0.0, 0.5, 1.0],
   );
@@ -112,8 +113,8 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF1A1A2E),
-      Color(0xFF16213E),
+      Color(0xFF232340),   // Match com novo darkSurface
+      Color(0xFF2A2A4A),   // Match com novo darkCard
     ],
   );
 
@@ -121,9 +122,9 @@ class AppColors {
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: [
-      Color(0xFF1A1A2E),
-      Color(0xFF2A2A4A),
-      Color(0xFF1A1A2E),
+      Color(0xFF232340),   // Match com novos tons
+      Color(0xFF3D3D5C),
+      Color(0xFF232340),
     ],
   );
 

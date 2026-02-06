@@ -8,6 +8,7 @@ import '../../models/booking_model.dart';
 import '../../models/vehicle_model.dart';
 import '../../models/review_model.dart';
 import '../../widgets/rating_widget.dart';
+import '../../services/loyalty_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddReviewScreen extends StatefulWidget {
@@ -141,6 +142,16 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
 
       // Atualizar rating do veículo
       await _updateVehicleRating(_booking!.vehicleId);
+
+      // Adicionar pontos de fidelidade
+      try {
+        await LoyaltyService().addReviewPoints(
+          authService.currentUser!.id,
+          _vehicle!.fullName,
+        );
+      } catch (e) {
+        print('Erro ao adicionar pontos: $e');
+      }
 
       if (!mounted) return;
 
